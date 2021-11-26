@@ -16,12 +16,24 @@ class RemoteControlUnit:
         self.buffer = []
         self.packet = array.array('B')
 
-    def run(self, usv):
-        self.buffer += self.sbus.read()
-        self.decode(usv)
+    def rcu_run(self, usv):
+        self.decode()
+        self.send_command(usv)
 
-    def decode(self, usv):
-        """解包数据"""
+    def send_command(self, usv):
+        self.send_data = self.receive_data.copy()
+        self.send_data['channel1'] = int(
+            1024 + ((usv.control.data['rudder'] + usv.control.data['thrust']) * 0.672))  # 左电机
+        self.send_data['channel3'] = int(
+            1024 + ((usv.control.data['thrust'] - usv.control.data['rudder']) * 0.672))  # 右电机
+
+        self.encode()
+        self.sbus.write(self.packet.tobytes())
+
+    def decode(self, ):
+        """读取数据并解包数据"""
+        self.buffer += self.sbus.read(25)
+
         while len(self.buffer) >= 25:
             if self.buffer[0] != 0x0f:
                 del self.buffer[0]
@@ -56,16 +68,6 @@ class RemoteControlUnit:
             self.receive_data['flag'] = self.buffer[23]
 
             del self.buffer[:25]
-
-            self.send_data = self.receive_data.copy()
-            self.send_data['channel1'] = int(
-                1024 + ((usv.control.data['rudder'] + usv.control.data['thrust']) * 0.672))  # 左电机
-            self.send_data['channel3'] = int(
-                1024 + ((usv.control.data['thrust'] - usv.control.data['rudder']) * 0.672))  # 右电机
-
-            self.encode()
-            self.sbus.write(self.packet.tobytes())
-
             break
 
     def encode(self):
