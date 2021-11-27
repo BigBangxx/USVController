@@ -1,37 +1,33 @@
 # USVControl
 
+2021.11.27
+
 #### 介绍
-python版船控
 
-#### 软件架构
-软件架构说明
-
-
-#### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
+python版船控，也可控两轮无人车，作者初学python练手。
 
 #### 使用说明
+​		目前仅有遥控功能，程序跑在工控机上，遥控器接收机S.BUS2接口连接COM50，同时COM50向外发送修改后的S.BUS2协议控制电机。中间信号转换可借助FT232模块、接收机信号转换模块，切记S.BUS协议需硬件取反。
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+
+#### 更新记录
+
+2021.11.26 第一版，仅支持遥控功能
+
+2021.11.27 添加维特组合导航协议解析 COM51
+
+#### 实验图片
+
+​		待添加
 
 #### 参与贡献
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+1. Fork 本仓库
 
+2. 新建 Feat_xxx 分支
 
-#### 特技
+3. 提交代码
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+4. 新建 Pull Request
+
+   （可私信作者）
