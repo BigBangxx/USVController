@@ -1,6 +1,7 @@
 import threading
 
 from remote_control_unit import RemoteControlUnit
+from navigation import Navigation
 from control import Control
 from settings import Settings
 
@@ -10,13 +11,16 @@ class UsvControl:
 
     def __init__(self):
         self.settings = Settings()
-        self.futaba = RemoteControlUnit(self.settings.sbus_com, )
+        self.futaba = RemoteControlUnit(self.settings.sbus_com)
+        self.navigation = Navigation(self.settings.navigation_com, self.settings.navigation_type,
+                                     self.settings.navigation_baudrate)
         self.control = Control()
 
     def main_run(self):
         self.futaba.rcu_run(self)
         self.control.c_run(self)
-        timer_10 = threading.Timer(0.005, self.main_run, )
+        self.navigation.n_run()
+        timer_10 = threading.Timer(0.01, self.main_run, )
         timer_10.start()
 
 
