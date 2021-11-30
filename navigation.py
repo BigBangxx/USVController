@@ -13,7 +13,8 @@ class Navigation:
                      'posture': {'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0},
                      'velocity': {'speed': 0.0, 'north': 0.0, 'east': 0.0, 'down': 0.0},
                      'gyroscope': {'X': 0.0, 'Y': 0.0, 'Z': 0.0},
-                     'accelerometer': {'X': 0.0, 'Y': 0.0, 'Z': 0.0}, 'timestamp': 0.0, 'errors': 0}
+                     'accelerometer': {'X': 0.0, 'Y': 0.0, 'Z': 0.0}, 'timestamp': 0.0, 'errors': 0, 'system_status': 0,
+                     'filter_status': 0}
         self.navigation = serial.Serial(com, baudrate, timeout=0, write_timeout=0)
         self.buffer = []
         self.packet = []

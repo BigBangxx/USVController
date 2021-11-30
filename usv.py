@@ -4,6 +4,7 @@ from remote_control_unit import RemoteControlUnit
 from navigation import Navigation
 from control import Control
 from settings import Settings
+from ground_control_station import GroundControlStation
 
 
 class UsvControl:
@@ -15,11 +16,13 @@ class UsvControl:
         self.navigation = Navigation(self.settings.navigation_com, self.settings.navigation_type,
                                      self.settings.navigation_baudrate)
         self.control = Control()
+        self.gcs = GroundControlStation(self.settings.gcs_com)
 
     def main_run(self):
         self.futaba.rcu_run(self)
         self.control.c_run(self)
         self.navigation.n_run()
+        self.gcs.g_run(self)
         timer_10 = threading.Timer(0.01, self.main_run, )
         timer_10.start()
 
