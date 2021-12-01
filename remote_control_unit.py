@@ -10,6 +10,7 @@ class RemoteControlUnit:
                              'channel7': 0, 'channel8': 0, 'channel9': 0, 'channel10': 0, 'channel11': 0,
                              'channel12': 0, 'channel13': 0, 'channel14': 0, 'channel15': 0, 'channel16': 0, 'flag': 0,
                              'error': 0, }
+        self.last_data = self.receive_data.copy()
         self.send_data = self.receive_data.copy()
         self.sbus = serial.Serial(com, 100000, serial.EIGHTBITS, serial.PARITY_EVEN, serial.STOPBITS_TWO, 0, False,
                                   False, 0)
@@ -98,3 +99,6 @@ class RemoteControlUnit:
         self.packet.append((self.send_data['channel16'] >> 3) & 0xff)
         self.packet.append(self.send_data['flag'])
         self.packet.append(0x04)
+
+    def backup_data(self):
+        self.last_data = self.receive_data.copy()

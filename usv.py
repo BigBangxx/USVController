@@ -23,6 +23,7 @@ class UsvControl:
         self.control.c_run(self)
         self.navigation.n_run()
         self.gcs.g_run(self)
+        self.futaba.backup_data()
         timer_10 = threading.Timer(0.01, self.ms10_run, )
         timer_10.start()
 

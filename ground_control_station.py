@@ -9,8 +9,8 @@ class GroundControlStation:
     def __init__(self, com):
         self.heart_beat = {'timestamp': 0.0, 'buffer_err': 0}
         self.command = {'timestamp': 0.0, 'setting': 0, 'desired_heading': 0.0, 'desired_speed': 0.0,
-                        'desired_latitude': 0.0, 'desired_longitude': 0.0, 'rudder': 0, 'thrust': 0, 'ignition': 0,
-                        'buffer_err': 0}
+                        'desired_latitude': 0.0, 'desired_longitude': 0.0, 'desired_rudder': 0, 'desired_thrust': 0,
+                        'ignition': 0, 'buffer_err': 0}
         self.gcs = serial.Serial(com, 57600, timeout=0, write_timeout=0)
         self.buffer = []
         self.errors = 0
@@ -20,7 +20,7 @@ class GroundControlStation:
         self.send_status(usv)
 
     def receive_decode(self, usv):
-        self.buffer += self.gcs.read()  # 超时时间要设置 ##############
+        self.buffer += self.gcs.read(256)
 
         while len(self.buffer) >= 5:
             if self.buffer[0] != calculate_header_lrc(self.buffer):

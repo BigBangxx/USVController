@@ -3,7 +3,7 @@ class Settings:
 
     def __init__(self):
 
-        self.usv_id = 0x0000
+        self.usv_id = 0
 
         # 串口配置
         self.sbus_com = 'COM50'
@@ -13,3 +13,4 @@ class Settings:
         # 外设配置
         self.navigation_type = 'wit'
         self.navigation_baudrate = '115200'
+        self.gcs_disconnect_time_allow = 3
