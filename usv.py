@@ -18,16 +18,27 @@ class UsvControl:
         self.control = Control()
         self.gcs = GroundControlStation(self.settings.gcs_com)
 
-    def main_run(self):
+    def ms10_run(self):
         self.futaba.rcu_run(self)
         self.control.c_run(self)
         self.navigation.n_run()
         self.gcs.g_run(self)
-        timer_10 = threading.Timer(0.01, self.main_run, )
+        timer_10 = threading.Timer(0.01, self.ms10_run, )
         timer_10.start()
+
+    def ms1000_run(self):
+        print(self.futaba.receive_data)
+        print(self.navigation.data)
+        print(self.control.data)
+        print(self.control.pid)
+        print(self.gcs.heart_beat)
+        print(self.gcs.command)
+        timer_1000 = threading.Timer(1, self.ms1000_run, )
+        timer_1000.start()
 
 
 # 按间距中的绿色按钮以运行脚本。
 if __name__ == '__main__':
     usv1 = UsvControl()
-    usv1.main_run()
+    usv1.ms10_run()
+    usv1.ms1000_run()

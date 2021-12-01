@@ -41,19 +41,16 @@ class GroundControlStation:
             packet_data = self.buffer[5:packet_length]
 
             if packet_id == 0 and packet_data_length == 8:  # 心跳包
-                print('心跳包' + str(time.time()))
                 self.heart_beat['timestamp'] = time.time()
                 self.heart_beat['buffer_err'] = self.errors
                 del self.buffer[:packet_length]
                 continue
 
             elif (packet_data[0] | packet_data[1] << 8) != usv.control.pid['id']:  # 数据过滤
-                print('数据过滤')
                 del self.buffer[:packet_length]
                 continue
 
             elif packet_id == 1 and packet_data_length == 40:  # Command
-                print('命令包')
                 command = struct.unpack('<Bffddhhb', bytes(packet_data[10:packet_data_length]))
                 self.command['timestamp'] = time.time()
                 self.command['setting'] = command[0]
@@ -68,7 +65,6 @@ class GroundControlStation:
                 continue
 
             elif packet_id == 2 and packet_data_length == 10:  # 参数请求
-                print('参数请求包')
                 data_bytes = struct.pack('<Hdfffffffff', usv.control.pid['id'], time.time(),
                                          usv.control.pid['heading_p'], usv.control.pid['heading_i'],
                                          usv.control.pid['heading_d'], usv.control.pid['speed_p'],
@@ -83,7 +79,6 @@ class GroundControlStation:
                 continue
 
             elif packet_id == 3 and packet_data_length == 46:  # 设置请求
-                print('PID设置包')
                 # 解析PID参数
                 pid = struct.unpack('<fffffffff', bytes(packet_data[10:packet_data_length]))
                 # 保存PID
@@ -106,7 +101,6 @@ class GroundControlStation:
                 continue
 
             elif packet_id == 4:
-                print('路点包')
                 data_type = packet_data[10]
                 if packet_data_length == 11 and data_type == 0:
                     pass
@@ -124,7 +118,6 @@ class GroundControlStation:
                 continue
 
     def send_status(self, usv):
-        # print('发送状态包')
         data_bytes = struct.pack('<HdBdddffffffffffffHHffhhb', usv.control.pid['id'], time.time(), usv.control.status,
                                  usv.navigation.data['location']['latitude'],
                                  usv.navigation.data['location']['longitude'],
