@@ -1,6 +1,6 @@
 # USVControl
 
-2021.12.1
+2021.12.2
 
 #### 介绍
 
@@ -29,6 +29,11 @@ python版船控，也可控两轮无人车，作者初学python练手。
 2. Control类增加地面站部分控制模式（gcs、heading、speed）、遥控器和地面站控制逻辑为遥控器为主
 3. GroundControlStation类修复参数名错误和serial  read字节数BUG
 4. 打印数据，供调试使用，暂时放弃共享内存方法，更改主函数名和Timer
+
+2021.12.2
+
+1. add Mission class
+2. Improve ground control station protocol analysis
 
 #### 开发计划
 

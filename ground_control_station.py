@@ -11,6 +11,7 @@ class GroundControlStation:
         self.command = {'timestamp': 0.0, 'setting': 0, 'desired_heading': 0.0, 'desired_speed': 0.0,
                         'desired_latitude': 0.0, 'desired_longitude': 0.0, 'desired_rudder': 0, 'desired_thrust': 0,
                         'ignition': 0, 'buffer_err': 0}
+        self.waypoints = []
         self.gcs = serial.Serial(com, 57600, timeout=0, write_timeout=0)
         self.buffer = []
         self.errors = 0
@@ -100,14 +101,21 @@ class GroundControlStation:
                 del self.buffer[:packet_length]
                 continue
 
-            elif packet_id == 4:
+            elif packet_id == 4:  # 任务上传请求
                 data_type = packet_data[10]
                 if packet_data_length == 11 and data_type == 0:
-                    pass
+                    self.waypoints.clear()
                 if packet_data_length == 31 and data_type == 1:
-                    pass
+                    way_point = struct.unpack('<ddf', bytes(packet_data[11:packet_data_length]))
+                    is_same = False
+                    if len(self.waypoints) != 0:
+                        if self.waypoints[0] != way_point[0] and self.waypoints[1] != way_point[1] and self.waypoints[
+                                2] != way_point[2]:
+                            is_same = True
+                    if not is_same:
+                        self.waypoints.append(way_point)
                 if packet_data_length == 11 and data_type == 2:
-                    pass
+                    usv.mission.write(self.waypoints)
                 # 返回成功信号
                 data_bytes = struct.pack('<HdB', usv.control.pid['id'], time.time(), 0xff)
                 crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))

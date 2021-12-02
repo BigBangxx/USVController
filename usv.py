@@ -5,6 +5,7 @@ from navigation import Navigation
 from control import Control
 from settings import Settings
 from ground_control_station import GroundControlStation
+from mission import Mission
 
 
 class UsvControl:
@@ -17,6 +18,7 @@ class UsvControl:
                                      self.settings.navigation_baudrate)
         self.control = Control()
         self.gcs = GroundControlStation(self.settings.gcs_com)
+        self.mission = Mission(self.settings.usv_id)
 
     def ms10_run(self):
         self.futaba.rcu_run(self)

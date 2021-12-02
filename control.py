@@ -1,6 +1,9 @@
 import math
 import time
 
+from navigation import Navigation
+from SelfBuiltModul.func import degrees_to_radians
+
 
 class Control:
     def __init__(self):
@@ -32,7 +35,7 @@ class Control:
             self.speed(usv)
         elif self.data['mode'] == 'heading_speed':
             self.heading_speed(usv)
-        elif self.data['mode'] == 'waypoint':
+        elif self.data['mode'] == 'waypoints':
             self.waypoint(usv)
         elif self.data['mode'] == 'waypoint_speed':
             self.waypoint_speed(usv)
@@ -62,7 +65,7 @@ class Control:
                 elif usv.gcs.command['setting'] == 4:
                     self.data['mode'] = 'heading_speed'
                 elif usv.gcs.command['setting'] == 5:
-                    self.data['mode'] = 'waypoint'
+                    self.data['mode'] = 'waypoints'
                 elif usv.gcs.command['setting'] == 6:
                     self.data['mode'] = 'waypoint_speed'
                 elif usv.gcs.command['setting'] == 7:
@@ -100,32 +103,32 @@ class Control:
             int(self.rudder_pid.calculate_pid(err, self.pid['heading_p'], self.pid['heading_i'],
                                               self.pid['heading_d'])))
 
-    def gcs(self, usv):
+    def gcs(self, usv):  # 1
         self.data['rudder'] = limit_1000(int(usv.gcs.command['desired_rudder']))
         self.data['thrust'] = limit_1000(int(usv.gcs.command['desired_thrust']))
 
-    def heading(self, usv):
+    def heading(self, usv):  # 2
         self.data['rudder'] = limit_1000(int(self.control_heading(usv)))
         self.data['thrust'] = limit_1000(int(usv.gcs.command['desired_thrust']))
 
-    def speed(self, usv):
+    def speed(self, usv):  # 3
         self.data['rudder'] = limit_1000(int(usv.gcs.command['desired_rudder']))
         self.data['thrust'] = limit_1000(int(self.control_speed(usv)))
 
-    def heading_speed(self, usv):
+    def heading_speed(self, usv):  # 4
         self.data['rudder'] = limit_1000(int(self.control_heading(usv)))
         self.data['thrust'] = limit_1000(int(self.control_speed(usv)))
 
-    def waypoint(self, usv):
+    def waypoint(self, usv):  # 5
         pass
 
-    def waypoint_speed(self, usv):
+    def waypoint_speed(self, usv):  # 6
         pass
 
-    def trajectory_point(self, usv):
+    def trajectory_point(self, usv):  # 7
         pass
 
-    def mission(self, usv):
+    def mission(self, usv):  # 8
         pass
 
     def control_heading(self, usv):
