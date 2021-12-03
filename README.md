@@ -1,6 +1,6 @@
 # USVControl
 
-2021.12.2
+2021.12.3
 
 #### 介绍
 
@@ -32,18 +32,23 @@ python版船控，也可控两轮无人车，作者初学python练手。
 
 2021.12.2
 
-1. add Mission class
+1. Add Mission class
 2. Improve ground control station protocol analysis
+
+2021.12.3
+
+1. Add 'waypoint' 'trajectory' 'mission' control mode
+2. Fix the mission upload function
+3. Pack EXE
 
 #### 开发计划
 
-1. 完善地面站控制相关功能（任务、路点等功能）
-2. 日志功能
-3. 配置文件功能
-4. 代码重构
-5. 共享内存
+1. 日志功能
+2. 配置文件功能
+3. 代码重构
+4. 共享内存
 
-6. 组合导航EKF
+5. 组合导航EKF
 
 
 #### 实验图片

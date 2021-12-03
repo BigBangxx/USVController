@@ -1,3 +1,4 @@
+import os
 from xml.etree import ElementTree
 from SelfBuiltModul.func import pretty_xml
 
@@ -7,6 +8,8 @@ class Mission:
 
     def __init__(self, id):
         self.file_name = f"AppData/{id}.xml"
+        if not os.path.exists("AppData"):
+            os.mkdir("AppData")
 
     def read(self):
         """去读xml文件，返回路点列表"""
@@ -29,6 +32,4 @@ class Mission:
                                           'tolerance': str(way_point[2])})
         pretty_xml(root, '\t', '\n')
         tree = ElementTree.ElementTree(root)
-        with open(self.file_name):
-            pass
         tree.write(self.file_name, 'UTF-8', True)

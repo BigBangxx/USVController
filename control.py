@@ -1,8 +1,9 @@
 import math
 import time
 
-from navigation import Navigation
-from SelfBuiltModul.func import degrees_to_radians
+from PySide2.QtPositioning import QGeoCoordinate as Point
+from SelfBuiltModul.func import degrees_to_radians, radians_to_degrees
+from guidance import calculate_los_angle
 
 
 class Control:
@@ -10,13 +11,25 @@ class Control:
         self.data = {'mode': 'lock', 'thrust': 0, 'rudder': 0, 'ignition': 0}
         self.pid = {'heading_p': 500.0, 'heading_i': 0.0, 'heading_d': 0.0, 'speed_p': 0.0, 'speed_i': 0.0,
                     'speed_d': 0.0, 'position_p': 0.0, 'position_i': 0.0, 'position_d': 0.0, 'id': 0x0000}
+        self.point_previous = Point(0.0, 0.0)
+        self.point_current = Point(0.0, 0.0)
+        self.point_desired = Point(0.0, 0.0)
+        self.last_setting = 0
+        self.waypoint_index = 0
         self.rudder_pid = Pid()
         self.thrust_pid = Pid()
+        self.position_pid = Pid()
         self.status = 0  # 无人船状态
         self.depth = 0
         self.battery = 0
 
+    def update(self, usv):
+        self.point_current = Point(usv.navigation.data['location']['latitude'],
+                                   usv.navigation.data['location']['longitude'])
+        self.point_desired = Point(usv.gcs.command['desired_latitude'], usv.gcs.command['desired_longitude'])
+
     def c_run(self, usv):
+        self.update(usv)
         self.choose_mode(usv)
         self.control(usv)
 
@@ -120,16 +133,60 @@ class Control:
         self.data['thrust'] = limit_1000(int(self.control_speed(usv)))
 
     def waypoint(self, usv):  # 5
-        pass
+        if self.point_current.distanceTo(self.point_desired) > usv.settings.gcs_waypoint_err:
+            usv.gcs.command['desired_heading'] = degrees_to_radians(self.point_current.azimuthTo(self.point_desired))
+            self.heading(usv)
+        else:
+            self.lock()
 
     def waypoint_speed(self, usv):  # 6
-        pass
+        if self.point_current.distanceTo(self.point_desired) > usv.settings.gcs_waypoint_err:
+            usv.gcs.command['desired_heading'] = degrees_to_radians(self.point_current.azimuthTo(self.point_desired))
+            self.heading_speed(usv)
+        else:
+            self.lock()
 
     def trajectory_point(self, usv):  # 7
-        pass
+        # 航向
+        desired_heading = degrees_to_radians(self.point_current.azimuthTo(self.point_desired))
+        if abs(usv.gcs.command['desired_heading'] - desired_heading > math.pi) / 2:
+            usv.gcs.command['desired_heading'] = desired_heading + math.pi
+        else:
+            usv.gcs.command['desired_heading'] = desired_heading
+        if usv.gcs.command['desired_heading'] > 2 * math.pi:
+            usv.gcs.command['desired_heading'] -= (2 * math.pi)
+
+        # 航速
+        heading_distance = self.point_current.distanceTo(self.point_desired) * math.cos(
+            desired_heading - usv.navigation.data['posture']['yaw'])
+        usv.gcs.command['desired_speed'] += self.position_pid.calculate_pid(heading_distance, self.pid['position_p'],
+                                                                            self.pid['position_i'],
+                                                                            self.pid['position_d'])
+
+        self.heading_speed(usv)
 
     def mission(self, usv):  # 8
-        pass
+        if self.last_setting != 8:
+            usv.gcs.waypoints = usv.mission.read()
+            self.waypoint_index = 0
+        if len(usv.gcs.waypoints) != 0:
+            way_point = usv.gcs.waypoints[self.waypoint_index]
+            point_next = Point(radians_to_degrees(way_point[0]), radians_to_degrees(way_point[1]))
+            distance = self.point_current.distanceTo(point_next)
+            # 根据容差确定是否要执行下一个点
+            if distance < way_point[2] and self.waypoint_index < len(usv.gcs.waypoints) - 1:
+                self.point_previous = point_next
+                way_point = usv.gcs.waypoints[++self.waypoint_index]
+                point_next.setLatitude(radians_to_degrees(way_point[0]))
+                point_next.setLongitude(radians_to_degrees(way_point[1]))
+            if self.waypoint_index == 0:
+                usv.gcs.command['desired_heading'] = degrees_to_radians(self.point_current.azimuthTo(point_next))
+            else:
+                usv.gcs.command['desired_heading'] = calculate_los_angle(self.point_previous, self.point_current,
+                                                                         point_next, usv.settings.los_distance)
+        self.last_setting = usv.gcs.command['setting']
+
+        self.heading(usv)
 
     def control_heading(self, usv):
         heading_err = usv.gcs.command['desired_heading'] - usv.navigation.data['posture']['yaw']

@@ -6,6 +6,11 @@ def degrees_to_radians(degrees):
     return degrees / 180 * math.pi
 
 
+def radians_to_degrees(radians):
+    """radians go to degrees"""
+    return radians * 180 / math.pi
+
+
 def to_signed_number(number, max_bytes):
     """Converts a binary number to a signed number"""
     if number < 2 ** (8 * max_bytes - 1):

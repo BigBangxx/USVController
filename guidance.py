@@ -3,7 +3,7 @@ import math
 from SelfBuiltModul.func import degrees_to_radians
 
 
-def calculate_los_angle(qgc_previous, qgc_current, qgc_next, los_distance):
+def calculate_los_angle(qgc_previous, qgc_current, qgc_next, los_distance=1.5):
     # 直线方向 degrees
     previous_2_next_angle = qgc_previous.azimuthTo(qgc_next)
     # 计算垂点

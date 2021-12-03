@@ -1,8 +1,6 @@
 import time
 import serial
 import struct
-from PySide2.QtGui import QPolygon
-import socket
 
 
 class GroundControlStation:
@@ -109,8 +107,8 @@ class GroundControlStation:
                     way_point = struct.unpack('<ddf', bytes(packet_data[11:packet_data_length]))
                     is_same = False
                     if len(self.waypoints) != 0:
-                        if self.waypoints[0] != way_point[0] and self.waypoints[1] != way_point[1] and self.waypoints[
-                                2] != way_point[2]:
+                        if self.waypoints[-1][0] != way_point[0] and self.waypoints[-1][1] != way_point[1] and \
+                                self.waypoints[-1][2] != way_point[2]:
                             is_same = True
                     if not is_same:
                         self.waypoints.append(way_point)
@@ -144,8 +142,8 @@ class GroundControlStation:
         self.gcs.write(send_data)
 
 
-def calculate_header_bytes(id, length, crc16):
-    header_list = [0, id, length, crc16 & 0xff, crc16 // 0x100]
+def calculate_header_bytes(usv_id, length, crc16):
+    header_list = [0, usv_id, length, crc16 & 0xff, crc16 // 0x100]
     header_list[0] = calculate_header_lrc(header_list)
     return struct.pack('<BBBBB', header_list[0], header_list[1], header_list[2], header_list[3], header_list[4])
 
