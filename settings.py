@@ -1,7 +1,12 @@
+import os
+
+
 class Settings:
     """配置项"""
 
     def __init__(self):
+        if not os.path.exists("AppData"):
+            os.mkdir("AppData")
         self.usv_id = 0
         self.los_distance = 1.5
 

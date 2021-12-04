@@ -6,6 +6,7 @@ from control import Control
 from settings import Settings
 from ground_control_station import GroundControlStation
 from mission import Mission
+from log import Log
 
 
 class UsvControl:
@@ -19,6 +20,7 @@ class UsvControl:
         self.control = Control()
         self.gcs = GroundControlStation(self.settings.gcs_com)
         self.mission = Mission(self.settings.usv_id)
+        self.log = Log(self.settings.usv_id)
 
     def ms10_run(self):
         self.futaba.rcu_run(self)
@@ -26,6 +28,7 @@ class UsvControl:
         self.navigation.n_run()
         self.gcs.g_run(self)
         self.futaba.backup_data()
+        self.log.write_log(self)
         timer_10 = threading.Timer(0.01, self.ms10_run, )
         timer_10.start()
 

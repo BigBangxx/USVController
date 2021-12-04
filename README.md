@@ -41,6 +41,10 @@ python版船控，也可控两轮无人车，作者初学python练手。
 2. Fix the mission upload function
 3. Pack EXE
 
+2021.12.4
+
+1. Add the log writing function 
+
 #### 开发计划
 
 1. 日志功能

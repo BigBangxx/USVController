@@ -1,4 +1,3 @@
-import os
 from xml.etree import ElementTree
 from SelfBuiltModul.func import pretty_xml
 
@@ -6,10 +5,8 @@ from SelfBuiltModul.func import pretty_xml
 class Mission:
     """任务相关类"""
 
-    def __init__(self, id):
-        self.file_name = f"AppData/{id}.xml"
-        if not os.path.exists("AppData"):
-            os.mkdir("AppData")
+    def __init__(self, usv_id):
+        self.file_name = f"AppData/{usv_id}.xml"
 
     def read(self):
         """去读xml文件，返回路点列表"""
