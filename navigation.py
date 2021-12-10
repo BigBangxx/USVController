@@ -12,7 +12,7 @@ from ground_control_station import calculate_header_lrc, calculate_crc16_ccitt
 class Navigation:
     """组合导航模块"""
 
-    def __init__(self, com, navigation_type, baudrate):
+    def __init__(self, usv):
         self.data = {'location': {'latitude': 0.0, 'longitude': 0.0, 'altitude': 0.0},
                      'posture': {'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0},
                      'velocity': {'speed': 0.0, 'north': 0.0, 'east': 0.0, 'down': 0.0},
@@ -21,14 +21,22 @@ class Navigation:
                      'filter_status': 0}
         self.buffer = []
         self.packet = []
-        self.navigation_type = navigation_type
-        if self.navigation_type == 'wit':
-            self.navigation = serial.Serial(com, baudrate, timeout=0, write_timeout=0)
+        if usv.settings.navigation_type == 'wit':
+            self.navigation = serial.Serial(usv.settings.navigation_com, usv.settings.navigation_baudrate, timeout=0,
+                                            write_timeout=0)
+        if usv.settings.navigation_type == 'airsim':
+            ip_port = (usv.settings.usv_ip, usv.settings.airsim_port)
+            self.receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.receive.bind(ip_port)
+            self.receive.setblocking(False)
+
+    def __del__(self):
+        self.receive.close()
 
     def n_run(self, usv):
-        if self.navigation_type == 'wit':
+        if usv.settings.navigation_type == 'wit':
             self.wit_decode()
-        elif self.navigation_type == 'airsim':
+        elif usv.settings.navigation_type == 'airsim':
             self.airsim_decode(usv)
 
     def wit_decode(self):
@@ -106,10 +114,11 @@ class Navigation:
 
     def airsim_decode(self, usv):
         buffer = []
-        ip_port = (usv.settings.usv_ip, usv.settings.airsim_port)
-        receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        receive.bind(ip_port)
-        data, send_add = receive.recvfrom(82)
+        try:
+            data, send_add = self.receive.recvfrom(82)
+        except BlockingIOError:
+            data = ""
+            send_add = ()
 
         if send_add == (usv.settings.airsim_ip, usv.settings.airsim_port):
             buffer += data
@@ -156,7 +165,6 @@ class Navigation:
                 self.data['accelerometer']['Z'] = command[14]
                 del self.buffer[:packet_length]
                 continue
-        receive.close()
 
     @staticmethod
     def wit_check_sum(data):

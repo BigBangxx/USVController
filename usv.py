@@ -15,8 +15,7 @@ class UsvControl:
     def __init__(self):
         self.settings = Settings()
         self.futaba = RemoteControlUnit(self.settings.sbus_com)
-        self.navigation = Navigation(self.settings.navigation_com, self.settings.navigation_type,
-                                     self.settings.navigation_baudrate)
+        self.navigation = Navigation(self)
         self.control = Control()
         self.gcs = GroundControlStation(self.settings.gcs_com)
         self.mission = Mission(self.settings.usv_id)
