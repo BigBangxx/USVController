@@ -45,7 +45,7 @@ class GroundControlStation:
                 del self.buffer[:packet_length]
                 continue
 
-            elif (packet_data[0] | packet_data[1] << 8) != usv.control.pid['id']:  # 数据过滤
+            elif (packet_data[0] | packet_data[1] << 8) != usv.settings.usv_id:  # 数据过滤
                 del self.buffer[:packet_length]
                 continue
 
@@ -64,7 +64,7 @@ class GroundControlStation:
                 continue
 
             elif packet_id == 2 and packet_data_length == 10:  # 参数请求
-                data_bytes = struct.pack('<Hdfffffffff', usv.control.pid['id'], time.time(),
+                data_bytes = struct.pack('<Hdfffffffff', usv.settings.usv_id, time.time(),
                                          usv.control.pid['heading_p'], usv.control.pid['heading_i'],
                                          usv.control.pid['heading_d'], usv.control.pid['speed_p'],
                                          usv.control.pid['speed_i'], usv.control.pid['speed_d'],
@@ -91,7 +91,7 @@ class GroundControlStation:
                 usv.control.pid['position_i'] = pid[7]
                 usv.control.pid['position_d'] = pid[8]
                 # 设置回应
-                data_bytes = struct.pack('<HdB', usv.control.pid['id'], time.time(), 0xff)
+                data_bytes = struct.pack('<HdB', usv.settings.usv_id, time.time(), 0xff)
                 crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
                 header_bytes = calculate_header_bytes(18, 11, crc16)  # 回应包id=18，包长11
                 send_data = header_bytes + data_bytes
@@ -115,7 +115,7 @@ class GroundControlStation:
                 if packet_data_length == 11 and data_type == 2:
                     usv.mission.write(self.waypoints)
                 # 返回成功信号
-                data_bytes = struct.pack('<HdB', usv.control.pid['id'], time.time(), 0xff)
+                data_bytes = struct.pack('<HdB', usv.settings.usv_id, time.time(), 0xff)
                 crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
                 header_bytes = calculate_header_bytes(19, 11, crc16)  # 回应包id=19，包长11
                 send_data = header_bytes + data_bytes
@@ -124,7 +124,7 @@ class GroundControlStation:
                 continue
 
     def send_status(self, usv):
-        data_bytes = struct.pack('<HdBdddffffffffffffHHffhhb', usv.control.pid['id'], time.time(), usv.control.status,
+        data_bytes = struct.pack('<HdBdddffffffffffffHHffhhb', usv.settings.usv_id, time.time(), usv.control.status,
                                  usv.navigation.data['location']['latitude'],
                                  usv.navigation.data['location']['longitude'],
                                  usv.navigation.data['location']['altitude'], usv.navigation.data['posture']['roll'],

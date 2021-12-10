@@ -1,5 +1,10 @@
+import socket
+import struct
+import time
+
 import serial
 import array
+from ground_control_station import calculate_header_bytes, calculate_crc16_ccitt
 
 
 class RemoteControlUnit:
@@ -22,14 +27,25 @@ class RemoteControlUnit:
         self.send_command(usv)
 
     def send_command(self, usv):
-        self.send_data = self.receive_data.copy()
-        self.send_data['channel1'] = int(
-            1024 + ((usv.control.data['rudder'] + usv.control.data['thrust']) * 0.672))  # 左电机
-        self.send_data['channel3'] = int(
-            1024 + ((usv.control.data['thrust'] - usv.control.data['rudder']) * 0.672))  # 右电机
+        if usv.settings.navigation_type != "airsim":
+            self.send_data = self.receive_data.copy()
+            self.send_data['channel1'] = int(
+                1024 + ((usv.control.data['rudder'] + usv.control.data['thrust']) * 0.672))  # 左电机
+            self.send_data['channel3'] = int(
+                1024 + ((usv.control.data['thrust'] - usv.control.data['rudder']) * 0.672))  # 右电机
 
-        self.encode()
-        self.sbus.write(self.packet.tobytes())
+            self.encode()
+            self.sbus.write(self.packet.tobytes())
+        else:
+            data_bytes = struct.pack('<Bdhh', usv.settings.usv_id, time.time(), usv.control.data['rudder'],
+                                     usv.control.data['thrust'])
+            crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
+            header_bytes = calculate_header_bytes(0, 16, crc16)  # 回应包id=0，包长16
+            send_data = header_bytes + data_bytes
+            ip_port = (usv.settings.airsim_ip, usv.settings.airsim_port)
+            send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            send.sendto(send_data, ip_port)
+            send.close()
 
     def decode(self, ):
         """读取数据并解包数据"""

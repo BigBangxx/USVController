@@ -25,7 +25,7 @@ class UsvControl:
     def ms10_run(self):
         self.futaba.rcu_run(self)
         self.control.c_run(self)
-        self.navigation.n_run()
+        self.navigation.n_run(self)
         self.gcs.g_run(self)
         self.futaba.backup_data()
         self.log.write_log(self)

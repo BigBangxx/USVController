@@ -1,8 +1,12 @@
 import math
+import struct
+
 import serial
 import time
+import socket
 
 from SelfBuiltModul.func import degrees_to_radians, to_signed_number
+from ground_control_station import calculate_header_lrc, calculate_crc16_ccitt
 
 
 class Navigation:
@@ -15,14 +19,17 @@ class Navigation:
                      'gyroscope': {'X': 0.0, 'Y': 0.0, 'Z': 0.0},
                      'accelerometer': {'X': 0.0, 'Y': 0.0, 'Z': 0.0}, 'timestamp': 0.0, 'errors': 0, 'system_status': 0,
                      'filter_status': 0}
-        self.navigation = serial.Serial(com, baudrate, timeout=0, write_timeout=0)
         self.buffer = []
         self.packet = []
         self.navigation_type = navigation_type
+        if self.navigation_type == 'wit':
+            self.navigation = serial.Serial(com, baudrate, timeout=0, write_timeout=0)
 
-    def n_run(self):
+    def n_run(self, usv):
         if self.navigation_type == 'wit':
             self.wit_decode()
+        elif self.navigation_type == 'airsim':
+            self.airsim_decode(usv)
 
     def wit_decode(self):
         """接受维特组合导航数据并解析"""
@@ -96,6 +103,60 @@ class Navigation:
     def encode(self):
         """打包维特导航数据"""
         pass
+
+    def airsim_decode(self, usv):
+        buffer = []
+        ip_port = (usv.settings.usv_ip, usv.settings.airsim_port)
+        receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        receive.bind(ip_port)
+        data, send_add = receive.recvfrom(82)
+
+        if send_add == (usv.settings.airsim_ip, usv.settings.airsim_port):
+            buffer += data
+
+        while len(buffer) >= 5:
+            if self.buffer[0] != calculate_header_lrc(self.buffer):
+                del self.buffer[0]
+                continue
+
+            packet_data_length = self.buffer[2]
+            packet_length = packet_data_length + 5
+
+            if len(self.buffer) < packet_length:
+                break
+            if (self.buffer[3] | self.buffer[4] << 8) != calculate_crc16_ccitt(self.buffer[5:], packet_data_length):
+                del self.buffer[0]
+                self.data['errors'] += 1
+                continue
+
+            packet_id = self.buffer[1]
+            packet_data = self.buffer[5:packet_length]
+
+            if (packet_data[0] | packet_data[1] << 8) != usv.control.pid['id']:  # 数据过滤
+                del self.buffer[:packet_length]
+                continue
+
+            elif packet_id == 10 and packet_data_length == 82:  # Command
+                command = struct.unpack('<dddffffffffffff', bytes(packet_data[10:packet_data_length]))
+                self.data['timestamp'] = time.time()
+                self.data['location']['latitude'] = command[0]
+                self.data['location']['longitude'] = command[1]
+                self.data['location']['altitude'] = command[2]
+                self.data['posture']['pitch'] = command[3]
+                self.data['posture']['roll'] = command[4]
+                self.data['posture']['yaw'] = command[5]
+                self.data['velocity']['north'] = command[6]
+                self.data['velocity']['east'] = command[7]
+                self.data['velocity']['down'] = command[8]
+                self.data['gyroscope']['Y'] = command[9]
+                self.data['gyroscope']['X'] = command[10]
+                self.data['gyroscope']['Z'] = command[11]
+                self.data['accelerometer']['Y'] = command[12]
+                self.data['accelerometer']['X'] = command[13]
+                self.data['accelerometer']['Z'] = command[14]
+                del self.buffer[:packet_length]
+                continue
+        receive.close()
 
     @staticmethod
     def wit_check_sum(data):
