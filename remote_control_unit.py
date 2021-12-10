@@ -37,14 +37,14 @@ class RemoteControlUnit:
             self.encode()
             self.sbus.write(self.packet.tobytes())
         else:
-            data_bytes = struct.pack('<Bdhh', usv.settings.usv_id, time.time(), usv.control.data['rudder'],
+            data_bytes = struct.pack('<Hdhh', usv.settings.usv_id, time.time(), usv.control.data['rudder'],
                                      usv.control.data['thrust'])
             crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
-            header_bytes = calculate_header_bytes(0, 16, crc16)  # 回应包id=0，包长16
+            header_bytes = calculate_header_bytes(0, 14, crc16)  # 回应包id=0，包长14
             send_data = header_bytes + data_bytes
-            ip_port = (usv.settings.airsim_ip, usv.settings.airsim_port)
             send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            send.sendto(send_data, ip_port)
+            send.bind((usv.settings.usv_ip,usv.settings.airsim_send_port))
+            send.sendto(send_data, (usv.settings.airsim_ip, usv.settings.airsim_receive_port))
             send.close()
 
     def decode(self, ):

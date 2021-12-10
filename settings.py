@@ -24,7 +24,8 @@ class Settings:
             config.set('navigation', 'navigation_com', 'COM51')
             config.set('navigation', 'navigation_baudrate', '115200')
             config.set('navigation', 'airsim_ip', '192.168.31.86')
-            config.set('navigation', 'airsim_port', '9876')
+            config.set('navigation', 'airsim_receive_port', '9876')
+            config.set('navigation', 'airsim_send_port', '6789')
 
             config.add_section('gcs')
             config.set('gcs', 'gcs_com', 'COM52')
@@ -48,7 +49,8 @@ class Settings:
             self.navigation_type = config.get('navigation', 'navigation_type')
             self.navigation_baudrate = eval(config.get('navigation', 'navigation_baudrate'))
             self.airsim_ip = config.get('navigation', 'airsim_ip')
-            self.airsim_port = eval(config.get('navigation', 'airsim_port'))
+            self.airsim_receive_port = eval(config.get('navigation', 'airsim_receive_port'))
+            self.airsim_send_port = eval(config.get('navigation', 'airsim_send_port'))
 
             self.gcs_com = config.get('gcs', 'gcs_com')
             self.gcs_disconnect_time_allow = eval(config.get('gcs', 'gcs_disconnect_time_allow'))

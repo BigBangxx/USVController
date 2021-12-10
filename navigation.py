@@ -25,7 +25,7 @@ class Navigation:
             self.navigation = serial.Serial(usv.settings.navigation_com, usv.settings.navigation_baudrate, timeout=0,
                                             write_timeout=0)
         if usv.settings.navigation_type == 'airsim':
-            ip_port = (usv.settings.usv_ip, usv.settings.airsim_port)
+            ip_port = (usv.settings.usv_ip, usv.settings.airsim_receive_port)
             self.receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.receive.bind(ip_port)
             self.receive.setblocking(False)
@@ -113,17 +113,16 @@ class Navigation:
         pass
 
     def airsim_decode(self, usv):
-        buffer = []
         try:
-            data, send_add = self.receive.recvfrom(82)
+            data, send_address = self.receive.recvfrom(87)
         except BlockingIOError:
             data = ""
-            send_add = ()
+            send_address = ()
 
-        if send_add == (usv.settings.airsim_ip, usv.settings.airsim_port):
-            buffer += data
+        if send_address == (usv.settings.airsim_ip, usv.settings.airsim_send_port):
+            self.buffer += data
 
-        while len(buffer) >= 5:
+        while len(self.buffer) >= 5:
             if self.buffer[0] != calculate_header_lrc(self.buffer):
                 del self.buffer[0]
                 continue
@@ -141,7 +140,7 @@ class Navigation:
             packet_id = self.buffer[1]
             packet_data = self.buffer[5:packet_length]
 
-            if (packet_data[0] | packet_data[1] << 8) != usv.control.pid['id']:  # 数据过滤
+            if (packet_data[0] | packet_data[1] << 8) != usv.settings.usv_id:  # 数据过滤
                 del self.buffer[:packet_length]
                 continue
 

@@ -19,7 +19,7 @@ class GroundControlStation:
         self.send_status(usv)
 
     def receive_decode(self, usv):
-        self.buffer += self.gcs.read(256)
+        self.buffer += self.gcs.read(128)
 
         while len(self.buffer) >= 5:
             if self.buffer[0] != calculate_header_lrc(self.buffer):

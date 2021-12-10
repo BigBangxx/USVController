@@ -17,7 +17,9 @@ python版船控，也可控两轮无人车，作者初学python练手。
 
 ​		AppData中csv格式文件为日志信息
 
-​		Airsim仿真功能待完善，暂不对外分享。
+​		仿真环境使用Airsim，车模型，代码在Airsim文件夹，相关配置教程请自行百度，navigation_type设置为airsim
+
+​		
 
 
 
@@ -65,6 +67,7 @@ python版船控，也可控两轮无人车，作者初学python练手。
 
 1. Add ini feature
 2. Change the mode of communication with the airsim to non-blocking
+2. The simulation environment can be used, but the ground control station data has a large delay after connection
 
 
 
