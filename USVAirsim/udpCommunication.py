@@ -24,7 +24,6 @@ class Udp:
             if self.buffer[0] != calculate_header_lrc(self.buffer):
                 del self.buffer[0]
                 continue
-
             packet_data_length = self.buffer[2]
             packet_length = packet_data_length + 5
 
