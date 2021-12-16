@@ -24,9 +24,10 @@ class Control:
         self.battery = 0
 
     def update(self, usv):
-        self.point_current = Point(usv.navigation.data['location']['latitude'],
-                                   usv.navigation.data['location']['longitude'])
-        self.point_desired = Point(usv.gcs.command['desired_latitude'], usv.gcs.command['desired_longitude'])
+        self.point_current = Point(radians_to_degrees(usv.navigation.data['location']['latitude']),
+                                   radians_to_degrees(usv.navigation.data['location']['longitude']))
+        self.point_desired = Point(radians_to_degrees(usv.gcs.command['desired_latitude']),
+                                   radians_to_degrees(usv.gcs.command['desired_longitude']))
 
     def c_run(self, usv):
         self.update(usv)
