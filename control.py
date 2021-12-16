@@ -28,6 +28,8 @@ class Control:
                                    radians_to_degrees(usv.navigation.data['location']['longitude']))
         self.point_desired = Point(radians_to_degrees(usv.gcs.command['desired_latitude']),
                                    radians_to_degrees(usv.gcs.command['desired_longitude']))
+        if usv.gcs.command['setting'] != 8:
+            self.last_setting = usv.gcs.command['setting']
 
     def c_run(self, usv):
         self.update(usv)
@@ -176,8 +178,10 @@ class Control:
             distance = self.point_current.distanceTo(point_next)
             # 根据容差确定是否要执行下一个点
             if distance < way_point[2] and self.waypoint_index < len(usv.gcs.waypoints) - 1:
-                self.point_previous = point_next
-                way_point = usv.gcs.waypoints[++self.waypoint_index]
+                self.point_previous.setLatitude(radians_to_degrees(way_point[0]))
+                self.point_previous.setLongitude(radians_to_degrees(way_point[1]))
+                self.waypoint_index += 1
+                way_point = usv.gcs.waypoints[self.waypoint_index]
                 point_next.setLatitude(radians_to_degrees(way_point[0]))
                 point_next.setLongitude(radians_to_degrees(way_point[1]))
             if self.waypoint_index == 0:
