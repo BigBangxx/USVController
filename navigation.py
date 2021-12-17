@@ -30,9 +30,6 @@ class Navigation:
             self.receive.bind(ip_port)
             self.receive.setblocking(False)
 
-    def __del__(self):
-        self.receive.close()
-
     def n_run(self, usv):
         if usv.settings.navigation_type == 'wit':
             self.wit_decode()
