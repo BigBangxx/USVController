@@ -49,7 +49,7 @@ class RemoteControlUnit:
 
     def decode(self, ):
         """读取数据并解包数据"""
-        self.buffer += self.sbus.read(25)
+        self.buffer += self.sbus.read(50)
 
         while len(self.buffer) >= 25:
             if self.buffer[0] != 0x0f:
