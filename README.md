@@ -77,16 +77,17 @@ python版船控，也可控两轮无人车，作者初学python练手。
 
 #### 开发计划
 
-1. 添加支持瑞芬组合导航
+1. 代码部署测试
 2. 完善Arisim仿真功能
 3. 代码重构
 4. 共享内存
 5. 组合导航EKF
 
-
 #### 实验图片
 
-​		待添加
+仿真环境测试
+
+![image-20220221163002292](C:\Users\STT\AppData\Roaming\Typora\typora-user-images\image-20220221163002292.png)
 
 #### 参与贡献
 
