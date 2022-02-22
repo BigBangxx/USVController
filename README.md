@@ -87,7 +87,7 @@ python版船控，也可控两轮无人车，作者初学python练手。
 
 仿真环境测试
 
-![image-20220221163002292](C:\Users\STT\AppData\Roaming\Typora\typora-user-images\image-20220221163002292.png)
+![image-20220221163002292](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220221163002292.png)
 
 #### 参与贡献
 
