@@ -13,7 +13,6 @@ class Settings:
 
             config.add_section('usv')
             config.set('usv', 'usv_id', '0')
-            config.set('usv', 'usv_ip', '192.2.5.53')
             config.set('usv', 'los_distance', '1.5')
 
             config.add_section('rcu')
@@ -24,11 +23,13 @@ class Settings:
             config.set('navigation', 'navigation_com', 'COM51')
             config.set('navigation', 'navigation_baudrate', '115200')
             config.set('navigation', 'airsim_ip', '192.168.31.86')
-            config.set('navigation', 'airsim_receive_port', '9876')
-            config.set('navigation', 'airsim_send_port', '6789')
+            config.set('navigation', 'airsim_port', '9876')
 
             config.add_section('gcs')
+            config.set('gcs', 'communication_type', 'udp')
             config.set('gcs', 'gcs_com', 'COM52')
+            config.set('gcs', 'server_ip', '')
+            config.set('gcs', 'server_port', '')
             config.set('gcs', 'gcs_disconnect_time_allow', '3')
             config.set('gcs', 'gcs_waypoint_err', '1')
 
@@ -40,7 +41,6 @@ class Settings:
             config.read_file(ini)
 
             self.usv_id = eval(config.get('usv', 'usv_id'))
-            self.usv_ip = config.get('usv', 'usv_ip')
             self.los_distance = eval(config.get('usv', 'los_distance'))
 
             self.sbus_com = config.get('rcu', 'sbus_com')
@@ -49,9 +49,11 @@ class Settings:
             self.navigation_type = config.get('navigation', 'navigation_type')
             self.navigation_baudrate = eval(config.get('navigation', 'navigation_baudrate'))
             self.airsim_ip = config.get('navigation', 'airsim_ip')
-            self.airsim_receive_port = eval(config.get('navigation', 'airsim_receive_port'))
-            self.airsim_send_port = eval(config.get('navigation', 'airsim_send_port'))
+            self.airsim_port = eval(config.get('navigation', 'airsim_port'))
 
+            self.gcs_communication_type = config.get('gcs', 'communication_type')
             self.gcs_com = config.get('gcs', 'gcs_com')
+            self.gcs_server_ip = config.get('gcs', 'server_ip')
+            self.gcs_server_port = eval(config.get('gcs', 'server_port'))
             self.gcs_disconnect_time_allow = eval(config.get('gcs', 'gcs_disconnect_time_allow'))
             self.gcs_waypoint_err = eval(config.get('gcs', 'gcs_waypoint_err'))

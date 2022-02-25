@@ -42,14 +42,11 @@ class RemoteControlUnit:
             crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
             header_bytes = calculate_header_bytes(0, 14, crc16)  # 回应包id=0，包长14
             send_data = header_bytes + data_bytes
-            send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            send.bind((usv.settings.usv_ip,usv.settings.airsim_send_port))
-            send.sendto(send_data, (usv.settings.airsim_ip, usv.settings.airsim_receive_port))
-            send.close()
+            usv.gcs.gcs_socket.sendto(send_data, (usv.settings.airsim_ip, usv.settings.airsim_port))
 
     def decode(self, ):
         """读取数据并解包数据"""
-        self.buffer += self.sbus.read(50)
+        self.buffer += self.sbus.read(25)
 
         while len(self.buffer) >= 25:
             if self.buffer[0] != 0x0f:

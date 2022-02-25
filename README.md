@@ -1,6 +1,6 @@
 # USVControl
 
-2021.12.10
+2022.02.25
 
 #### 介绍
 
@@ -71,7 +71,12 @@ python版船控，也可控两轮无人车，作者初学python练手。
 
 2022.02.21
 
-1.Supports riven(rion) IMU560 integrated navigation
+1. Supports riven(rion) IMU560 integrated navigation
+
+2022.02.25
+
+1. Communication with the ground station supports network port communication.
+2. Simulation code optimization
 
 
 

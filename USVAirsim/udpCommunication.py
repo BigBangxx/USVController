@@ -5,16 +5,19 @@ import time
 
 class Udp:
     def __init__(self):
-        self.receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.receive.bind(('192.168.31.87', 9876))
-        self.receive.setblocking(False)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.bind(('0.0.0.0', 9876))
+        self.socket.setblocking(False)
         self.command = [0, 0]
         self.states = []
         self.buffer = []
 
+    def __del__(self):
+        self.socket.close()
+
     def receive(self):
         try:
-            data, send_address = self.receive.recvfrom(19)
+            data, send_address = self.socket.recvfrom(19)
         except BlockingIOError:
             data = ''
             send_address = ()
@@ -55,10 +58,7 @@ class Udp:
         crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
         header_bytes = calculate_header_bytes(10, 82, crc16)  # 回应包id=10，包长82
         send_data = header_bytes + data_bytes
-        send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        send_socket.bind(('192.168.31.87', 6789))
-        send_socket.sendto(send_data, ('192.168.31.234', 9876))
-        send_socket.close()
+        self.socket.sendto(send_data, ('192.168.1.101', 9876))
 
 
 def calculate_header_bytes(usv_id, length, crc16):

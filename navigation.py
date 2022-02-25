@@ -26,7 +26,7 @@ class Navigation:
             self.navigation = serial.Serial(usv.settings.navigation_com, usv.settings.navigation_baudrate, timeout=0,
                                             write_timeout=0)
         if usv.settings.navigation_type == 'airsim':
-            ip_port = (usv.settings.usv_ip, usv.settings.airsim_receive_port)
+            ip_port = ('0.0.0.0', usv.settings.airsim_port)
             self.receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.receive.bind(ip_port)
             self.receive.setblocking(False)
@@ -162,7 +162,7 @@ class Navigation:
             data = ""
             send_address = ()
 
-        if send_address == (usv.settings.airsim_ip, usv.settings.airsim_send_port):
+        if send_address == (usv.settings.airsim_ip, usv.settings.airsim_port):
             self.buffer += data
 
         while len(self.buffer) >= 5:

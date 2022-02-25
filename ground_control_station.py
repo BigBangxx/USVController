@@ -1,25 +1,49 @@
 import time
+import socket
+
 import serial
 import struct
 
 
 class GroundControlStation:
-    def __init__(self, com):
+    def __init__(self, usv):
         self.heart_beat = {'timestamp': 0.0, 'buffer_err': 0}
         self.command = {'timestamp': 0.0, 'setting': 0, 'desired_heading': 0.0, 'desired_speed': 0.0,
                         'desired_latitude': 0.0, 'desired_longitude': 0.0, 'desired_rudder': 0, 'desired_thrust': 0,
                         'ignition': 0, 'buffer_err': 0}
         self.waypoints = []
-        self.gcs = serial.Serial(com, 57600, timeout=0, write_timeout=0)
+        self.communication_type = usv.settings.gcs_communication_type
+        if self.communication_type == 'udp':
+            usv_ip_port = ('0.0.0.0', usv.settings.gcs_server_port)
+            self.server_ip_port = (usv.settings.gcs_server_ip, usv.settings.gcs_server_port)
+            self.gcs_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.gcs_socket.bind(usv_ip_port)
+            self.gcs_socket.setblocking(False)
+        else:
+            self.gcs_serial = serial.Serial(usv.settings.gcs_com, 57600, timeout=0, write_timeout=0)
         self.buffer = []
         self.errors = 0
+
+    def __del__(self):
+        if self.communication_type == 'udp':
+            self.gcs_socket.close()
+
 
     def g_run(self, usv):
         self.receive_decode(usv)
         self.send_status(usv)
 
     def receive_decode(self, usv):
-        self.buffer += self.gcs.read(128)
+        if self.communication_type == 'udp':
+            try:
+                data, send_address = self.gcs_socket.recvfrom(128)
+            except BlockingIOError:
+                data = ""
+                send_address = ()
+            if send_address == (usv.settings.gcs_server_ip, usv.settings.gcs_server_port):
+                self.buffer += data
+        else:
+            self.buffer += self.gcs_serial.read(128)
 
         while len(self.buffer) >= 5:
             if self.buffer[0] != calculate_header_lrc(self.buffer):
@@ -73,7 +97,10 @@ class GroundControlStation:
                 crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
                 header_bytes = calculate_header_bytes(17, 46, crc16)  # 参数包id=17，包长46
                 send_data = header_bytes + data_bytes
-                self.gcs.write(send_data)
+                if self.communication_type == 'udp':
+                    self.gcs_socket.sendto(send_data, self.server_ip_port)
+                else:
+                    self.gcs_serial.write(send_data)
                 del self.buffer[:packet_length]
                 continue
 
@@ -95,7 +122,10 @@ class GroundControlStation:
                 crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
                 header_bytes = calculate_header_bytes(18, 11, crc16)  # 回应包id=18，包长11
                 send_data = header_bytes + data_bytes
-                self.gcs.write(send_data)
+                if self.communication_type == 'udp':
+                    self.gcs_socket.sendto(send_data, self.server_ip_port)
+                else:
+                    self.gcs_serial.write(send_data)
                 del self.buffer[:packet_length]
                 continue
 
@@ -119,7 +149,10 @@ class GroundControlStation:
                 crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
                 header_bytes = calculate_header_bytes(19, 11, crc16)  # 回应包id=19，包长11
                 send_data = header_bytes + data_bytes
-                self.gcs.write(send_data)
+                if self.communication_type == 'udp':
+                    self.gcs_socket.sendto(send_data, self.server_ip_port)
+                else:
+                    self.gcs_serial.write(send_data)
                 del self.buffer[:packet_length]
                 continue
 
@@ -139,7 +172,10 @@ class GroundControlStation:
         crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
         header_bytes = calculate_header_bytes(16, 100, crc16)  # 回应包id=16，包长100
         send_data = header_bytes + data_bytes
-        self.gcs.write(send_data)
+        if self.communication_type == 'udp':
+            self.gcs_socket.sendto(send_data, self.server_ip_port)
+        else:
+            self.gcs_serial.write(send_data)
 
 
 def calculate_header_bytes(usv_id, length, crc16):

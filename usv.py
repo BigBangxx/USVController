@@ -17,7 +17,7 @@ class UsvControl:
         self.futaba = RemoteControlUnit(self.settings.sbus_com)
         self.navigation = Navigation(self)
         self.control = Control()
-        self.gcs = GroundControlStation(self.settings.gcs_com)
+        self.gcs = GroundControlStation(self)
         self.mission = Mission(self.settings.usv_id)
         self.log = Log(self.settings.usv_id)
 
