@@ -1,6 +1,6 @@
 # USVControl
 
-2022.02.25
+2022.02.26
 
 #### 介绍
 
@@ -77,6 +77,10 @@ python版船控，也可控两轮无人车，作者初学python练手。
 
 1. Communication with the ground station supports network port communication.
 2. Simulation code optimization
+
+2022.02.26
+
+1. Fix rcu delay bug
 
 
 

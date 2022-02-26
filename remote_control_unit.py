@@ -46,7 +46,7 @@ class RemoteControlUnit:
 
     def decode(self, ):
         """读取数据并解包数据"""
-        self.buffer += self.sbus.read(25)
+        self.buffer += self.sbus.read(self.sbus.in_waiting)
 
         while len(self.buffer) >= 25:
             if self.buffer[0] != 0x0f:
@@ -82,7 +82,6 @@ class RemoteControlUnit:
             self.receive_data['flag'] = self.buffer[23]
 
             del self.buffer[:25]
-            break
 
     def encode(self):
         """打包数据"""
