@@ -42,7 +42,7 @@ class RemoteControlUnit:
             crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))
             header_bytes = calculate_header_bytes(0, 14, crc16)  # 回应包id=0，包长14
             send_data = header_bytes + data_bytes
-            usv.gcs.gcs_socket.sendto(send_data, (usv.settings.airsim_ip, usv.settings.airsim_port))
+            usv.navigation.navigation_socket.sendto(send_data, (usv.settings.airsim_ip, usv.settings.airsim_port))
 
     def decode(self, ):
         """读取数据并解包数据"""

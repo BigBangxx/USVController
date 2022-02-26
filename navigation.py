@@ -27,9 +27,9 @@ class Navigation:
                                             write_timeout=0)
         if usv.settings.navigation_type == 'airsim':
             ip_port = ('0.0.0.0', usv.settings.airsim_port)
-            self.receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.receive.bind(ip_port)
-            self.receive.setblocking(False)
+            self.navigation_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.navigation_socket.bind(ip_port)
+            self.navigation_socket.setblocking(False)
 
     def n_run(self, usv):
         if usv.settings.navigation_type == 'wit':
@@ -42,7 +42,7 @@ class Navigation:
     def wit_decode(self):
         """接受维特组合导航数据并解析"""
 
-        self.buffer += self.navigation.read(55)
+        self.buffer += self.navigation.read(self.navigation.in_waiting)
 
         while len(self.buffer) >= 11:
             if self.buffer[0] != 0x55:
@@ -106,14 +106,13 @@ class Navigation:
             self.packet = self.buffer[1:10]
 
             del self.buffer[:11]
-            # break  组合导航100hz，控制周期100hz，不需要break
 
     def encode(self):
         """打包维特导航数据"""
         pass
 
     def rion_decode(self):
-        self.buffer += self.navigation.read(84)
+        self.buffer += self.navigation.read(self.navigation.in_waiting)
         while len(self.buffer) >= 5:
             # Find the start of a packet by scanning for a valid data head
             if (self.buffer[0] != 0xff) or (self.buffer[1] != 0x02):
@@ -157,7 +156,7 @@ class Navigation:
 
     def airsim_decode(self, usv):
         try:
-            data, send_address = self.receive.recvfrom(87)
+            data, send_address = self.navigation_socket.recvfrom(1024)
         except BlockingIOError:
             data = ""
             send_address = ()
@@ -185,7 +184,6 @@ class Navigation:
 
             if (packet_data[0] | packet_data[1] << 8) != usv.settings.usv_id:  # 数据过滤
                 del self.buffer[:packet_length]
-                continue
 
             elif packet_id == 10 and packet_data_length == 82:  # Command
                 command = struct.unpack('<dddffffffffffff', bytes(packet_data[10:packet_data_length]))
@@ -206,7 +204,6 @@ class Navigation:
                 self.data['accelerometer']['X'] = command[13]
                 self.data['accelerometer']['Z'] = command[14]
                 del self.buffer[:packet_length]
-                continue
 
     @staticmethod
     def wit_check_sum(data):

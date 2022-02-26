@@ -17,7 +17,7 @@ class Udp:
 
     def receive(self):
         try:
-            data, send_address = self.socket.recvfrom(19)
+            data, send_address = self.socket.recvfrom(1024)
         except BlockingIOError:
             data = ''
             send_address = ()
@@ -47,7 +47,6 @@ class Udp:
                 self.command[0] = data[0]
                 self.command[1] = data[1]
                 del self.buffer[:packet_length]
-                continue
 
     def send(self):
         data_bytes = struct.pack('<Hddddffffffffffff', 0, time.time(), self.states[0] / 100000, self.states[1] / 100000,

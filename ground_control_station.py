@@ -28,7 +28,6 @@ class GroundControlStation:
         if self.communication_type == 'udp':
             self.gcs_socket.close()
 
-
     def g_run(self, usv):
         self.receive_decode(usv)
         self.send_status(usv)
@@ -36,14 +35,14 @@ class GroundControlStation:
     def receive_decode(self, usv):
         if self.communication_type == 'udp':
             try:
-                data, send_address = self.gcs_socket.recvfrom(128)
+                data, send_address = self.gcs_socket.recvfrom(1024)
             except BlockingIOError:
                 data = ""
                 send_address = ()
             if send_address == (usv.settings.gcs_server_ip, usv.settings.gcs_server_port):
                 self.buffer += data
         else:
-            self.buffer += self.gcs_serial.read(128)
+            self.buffer += self.gcs_serial.read(self.gcs_serial.in_waiting)
 
         while len(self.buffer) >= 5:
             if self.buffer[0] != calculate_header_lrc(self.buffer):
@@ -67,11 +66,9 @@ class GroundControlStation:
                 self.heart_beat['timestamp'] = time.time()
                 self.heart_beat['buffer_err'] = self.errors
                 del self.buffer[:packet_length]
-                continue
 
             elif (packet_data[0] | packet_data[1] << 8) != usv.settings.usv_id:  # 数据过滤
                 del self.buffer[:packet_length]
-                continue
 
             elif packet_id == 1 and packet_data_length == 40:  # Command
                 command = struct.unpack('<Bffddhhb', bytes(packet_data[10:packet_data_length]))
@@ -85,7 +82,6 @@ class GroundControlStation:
                 self.command['desired_thrust'] = command[6]
                 self.command['ignition'] = command[7]
                 del self.buffer[:packet_length]
-                continue
 
             elif packet_id == 2 and packet_data_length == 10:  # 参数请求
                 data_bytes = struct.pack('<Hdfffffffff', usv.settings.usv_id, time.time(),
@@ -102,7 +98,6 @@ class GroundControlStation:
                 else:
                     self.gcs_serial.write(send_data)
                 del self.buffer[:packet_length]
-                continue
 
             elif packet_id == 3 and packet_data_length == 46:  # 设置请求
                 # 解析PID参数
@@ -127,7 +122,6 @@ class GroundControlStation:
                 else:
                     self.gcs_serial.write(send_data)
                 del self.buffer[:packet_length]
-                continue
 
             elif packet_id == 4:  # 任务上传请求
                 data_type = packet_data[10]
@@ -154,7 +148,6 @@ class GroundControlStation:
                 else:
                     self.gcs_serial.write(send_data)
                 del self.buffer[:packet_length]
-                continue
 
     def send_status(self, usv):
         data_bytes = struct.pack('<HdBdddffffffffffffHHffhhb', usv.settings.usv_id, time.time(), usv.control.status,

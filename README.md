@@ -81,6 +81,7 @@ python版船控，也可控两轮无人车，作者初学python练手。
 2022.02.26
 
 1. Fix rcu delay bug
+1. Optimize the code
 
 
 
