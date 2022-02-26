@@ -29,11 +29,14 @@ class RemoteControlUnit:
     def send_command(self, usv):
         if usv.settings.navigation_type != "airsim":
             self.send_data = self.receive_data.copy()
-            self.send_data['channel1'] = int(
-                1024 + ((usv.control.data['rudder'] + usv.control.data['thrust']) * 0.672))  # 左电机
-            self.send_data['channel3'] = int(
-                1024 + ((usv.control.data['thrust'] - usv.control.data['rudder']) * 0.672))  # 右电机
-
+            if usv.settings.is_catamaran:
+                self.send_data['channel1'] = int(
+                    1024 + ((usv.control.data['rudder'] + usv.control.data['thrust']) * 0.672))  # 左电机
+                self.send_data['channel3'] = int(
+                    1024 + ((usv.control.data['thrust'] - usv.control.data['rudder']) * 0.672))  # 右电机
+            else:
+                self.send_data['channel1'] = int(1024 + (usv.control.data['thrust'] * 0.672))  # 推进器
+                self.send_data['channel3'] = int(1024 + (usv.control.data['rudder'] * 0.672))  # 舵
             self.encode()
             self.sbus.write(self.packet.tobytes())
         else:

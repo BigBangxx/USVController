@@ -4,14 +4,18 @@
 
 #### 介绍
 
-python版船控，也可控两轮无人车，作者初学python练手。
+无人艇控制程序，也可控无人小车（python语言）。
 
 #### 使用说明
-​		支持遥控器和地面站控制，程序跑在工控机或树莓派上。
+​		支持遥控器和地面站控制，支持差速模型和舵模型（通过配置文件is_catamaran参数配置）。
 
-​		遥控器接收机S.BUS2接口连接COM50，同时COM50向外发送修改后的S.BUS2协议控制电机。中间信号转换可借助FT232模块、接收机信号转换模块，切记S.BUS协议需硬件取反。
+​		遥控器接收机S.BUS2接口连接至COM50，同时COM50向外发送修改后的S.BUS2协议控制推进器或舵。中间信号转换可借助FT232模块、接收机信号转换模块，切记S.BUS协议需硬件取反。
 
-​		组合导航目前支持维特智能品牌和瑞芬IMU560（非标准协议），借助TTL转串口连接在COM51。通过串口连接地面站，COM52，地面站暂不对外分享。遥控器通道三控制前进倒退，通道一控制转向。
+​		组合导航目前支持维特智能品牌和瑞芬IMU560（非标准协议），连接至COM51。
+
+​		地面站地面站可通过数传电台（COM52）或4G连接，地面站暂不公开分享。
+
+​		遥控器通道三控制前进倒退，通道一控制转向。
 
 ​		以上参数均可通过AppData/settings.ini文件配置
 
@@ -83,6 +87,7 @@ python版船控，也可控两轮无人车，作者初学python练手。
 1. Fix rcu delay bug
 1. Optimize the code
 1. Set PID parameters by Settings.ini
+1. Support the usv that have a propeller and a rudder
 
 
 
@@ -99,6 +104,16 @@ python版船控，也可控两轮无人车，作者初学python练手。
 仿真环境测试
 
 ![image-20220221163002292](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220221163002292.png)
+
+部署测试
+
+![557dbde9521f06c42232a0a7b7bd5fb](https://gitee.com/sttdo/picture/raw/master/img/2022/02/557dbde9521f06c42232a0a7b7bd5fb.jpg)
+
+路点追踪（任务模式）
+
+![image-20220226224850116](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220226224850116.png)
+
+
 
 #### 参与贡献
 

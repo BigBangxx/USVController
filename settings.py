@@ -14,6 +14,7 @@ class Settings:
             config.add_section('usv')
             config.set('usv', 'usv_id', '0')
             config.set('usv', 'los_distance', '1.5')
+            config.set('usv', 'is_catamaran', 'True')
             config.set('usv', 'heading_p', '500')
             config.set('usv', 'heading_i', '0')
             config.set('usv', 'heading_d', '100')
@@ -51,6 +52,7 @@ class Settings:
 
             self.usv_id = eval(config.get('usv', 'usv_id'))
             self.los_distance = eval(config.get('usv', 'los_distance'))
+            self.is_catamaran = eval(config.get('usv', 'is_catamaran'))
             self.heading_p = eval(config.get('usv', 'heading_p'))
             self.heading_i = eval(config.get('usv', 'heading_i'))
             self.heading_d = eval(config.get('usv', 'heading_d'))
