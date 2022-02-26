@@ -112,6 +112,7 @@ class GroundControlStation:
                 usv.control.pid['position_p'] = pid[6]
                 usv.control.pid['position_i'] = pid[7]
                 usv.control.pid['position_d'] = pid[8]
+                usv.settings.update_pid(pid[0], pid[1], pid[2], pid[3], pid[4], pid[5], pid[6], pid[7], pid[8])
                 # 设置回应
                 data_bytes = struct.pack('<HdB', usv.settings.usv_id, time.time(), 0xff)
                 crc16 = calculate_crc16_ccitt(data_bytes, len(data_bytes))

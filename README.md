@@ -82,6 +82,7 @@ python版船控，也可控两轮无人车，作者初学python练手。
 
 1. Fix rcu delay bug
 1. Optimize the code
+1. Set PID parameters by Settings.ini
 
 
 

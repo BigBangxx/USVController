@@ -14,6 +14,15 @@ class Settings:
             config.add_section('usv')
             config.set('usv', 'usv_id', '0')
             config.set('usv', 'los_distance', '1.5')
+            config.set('usv', 'heading_p', '500')
+            config.set('usv', 'heading_i', '0')
+            config.set('usv', 'heading_d', '100')
+            config.set('usv', 'speed_p', '0')
+            config.set('usv', 'speed_i', '0')
+            config.set('usv', 'speed_d', '0')
+            config.set('usv', 'position_p', '0')
+            config.set('usv', 'position_i', '0')
+            config.set('usv', 'position_d', '0')
 
             config.add_section('rcu')
             config.set('rcu', 'sbus_com', 'COM50')
@@ -42,6 +51,15 @@ class Settings:
 
             self.usv_id = eval(config.get('usv', 'usv_id'))
             self.los_distance = eval(config.get('usv', 'los_distance'))
+            self.heading_p = eval(config.get('usv', 'heading_p'))
+            self.heading_i = eval(config.get('usv', 'heading_i'))
+            self.heading_d = eval(config.get('usv', 'heading_d'))
+            self.speed_p = eval(config.get('usv', 'speed_p'))
+            self.speed_i = eval(config.get('usv', 'speed_i'))
+            self.speed_d = eval(config.get('usv', 'speed_d'))
+            self.position_p = eval(config.get('usv', 'position_p'))
+            self.position_i = eval(config.get('usv', 'position_i'))
+            self.position_d = eval(config.get('usv', 'position_d'))
 
             self.sbus_com = config.get('rcu', 'sbus_com')
 
@@ -57,3 +75,20 @@ class Settings:
             self.gcs_server_port = eval(config.get('gcs', 'server_port'))
             self.gcs_disconnect_time_allow = eval(config.get('gcs', 'gcs_disconnect_time_allow'))
             self.gcs_waypoint_err = eval(config.get('gcs', 'gcs_waypoint_err'))
+
+    @staticmethod
+    def update_pid(hp, hi, hd, sp, si, sd, pp, pi, pd):
+        with open("AppData/settings.ini", ) as ini:
+            config = configparser.ConfigParser()
+            config.read_file(ini)
+            config.set('usv', 'heading_p', f'{hp}')
+            config.set('usv', 'heading_i', f'{hi}')
+            config.set('usv', 'heading_d', f'{hd}')
+            config.set('usv', 'speed_p', f'{sp}')
+            config.set('usv', 'speed_i', f'{si}')
+            config.set('usv', 'speed_d', f'{sd}')
+            config.set('usv', 'position_p', f'{pp}')
+            config.set('usv', 'position_i', f'{pi}')
+            config.set('usv', 'position_d', f'{pd}')
+        with open("AppData/settings.ini", 'w') as ini:
+            config.write(ini)

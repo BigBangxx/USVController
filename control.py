@@ -7,10 +7,13 @@ from guidance import calculate_los_angle
 
 
 class Control:
-    def __init__(self):
+    def __init__(self, usv):
         self.data = {'mode': 'lock', 'thrust': 0, 'rudder': 0, 'ignition': 0}
-        self.pid = {'heading_p': 500.0, 'heading_i': 0.0, 'heading_d': 0.0, 'speed_p': 0.0, 'speed_i': 0.0,
-                    'speed_d': 0.0, 'position_p': 0.0, 'position_i': 0.0, 'position_d': 0.0, 'id': 0x0000}
+        self.pid = {'heading_p': usv.settings.heading_p, 'heading_i': usv.settings.heading_i,
+                    'heading_d': usv.settings.heading_d, 'speed_p': usv.settings.speed_p,
+                    'speed_i': usv.settings.speed_i, 'speed_d': usv.settings.speed_d,
+                    'position_p': usv.settings.position_p, 'position_i': usv.settings.position_i,
+                    'position_d': usv.settings.position_d, 'id': usv.settings.usv_id}
         self.point_previous = Point(0.0, 0.0)
         self.point_current = Point(0.0, 0.0)
         self.point_desired = Point(0.0, 0.0)
@@ -19,7 +22,7 @@ class Control:
         self.rudder_pid = Pid()
         self.thrust_pid = Pid()
         self.position_pid = Pid()
-        self.status = 0  # 无人船状态
+        self.status = 0  # 无人船控制状态
         self.depth = 0
         self.battery = 0
 
