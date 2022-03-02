@@ -23,16 +23,17 @@ class Main:
         # 仿真器左上角会显示：ControlMode: API
 
     def run(self):
-        print(self.udp.command)
+        # print(self.udp.command)
         states = self.client.getCarState()
         car_state = states.__dict__['kinematics_estimated'].__dict__
 
         yaw = car_state['orientation'].__dict__['z_val']
-        if yaw< 0:
+        if yaw < 0:
             yaw += 2
         yaw *= math.pi
 
-        states = [car_state['position'].__dict__['x_val'], car_state['position'].__dict__['y_val'],
+        states = [math.radians(22.741685 + car_state['position'].__dict__['x_val'] * 0.00000899),
+                  math.radians(113.599605 + car_state['position'].__dict__['y_val'] * 0.000009752),
                   car_state['position'].__dict__['z_val'],
                   car_state['orientation'].__dict__['x_val'], car_state['orientation'].__dict__['y_val'],
                   yaw,
@@ -61,14 +62,10 @@ class Main:
             Udp.receive(self.udp)
 
 
-
 if __name__ == "__main__":
     main = Main()
     main.run()
     main.control()
-
-
-
 
 # 将车辆初始化处理，后续如果需要重新控制则需要再次调用`enableApiControl`或`armDisarm
 

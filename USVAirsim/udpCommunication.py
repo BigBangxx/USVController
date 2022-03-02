@@ -49,8 +49,7 @@ class Udp:
                 del self.buffer[:packet_length]
 
     def send(self):
-        data_bytes = struct.pack('<Hddddffffffffffff', 0, time.time(), self.states[0] / 100000, self.states[1] / 100000,
-                                 self.states[2] / 100000,
+        data_bytes = struct.pack('<Hddddffffffffffff', 0, time.time(), self.states[0], self.states[1], self.states[2],
                                  self.states[3], self.states[4], self.states[5], self.states[6], self.states[7],
                                  self.states[8], self.states[9], self.states[10], self.states[11], self.states[12],
                                  self.states[13], self.states[14])
