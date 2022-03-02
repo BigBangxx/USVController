@@ -1,6 +1,6 @@
 # USVControl
 
-2022.02.26
+2022.03.02
 
 #### 介绍
 
@@ -89,13 +89,16 @@
 1. Set PID parameters by Settings.ini
 1. Support the usv that have a propeller and a rudder
 
+2022.03.02
+
+1. Implement qGeoCoordinate, cancel Import PySide2
+2. Simulated geographic coordinates update
+
 
 
 #### 开发计划
 
 1. 代码部署测试
-
-2. 实现GeoCoordinate，取消Import PySide2
 
 3. 增加Ascii和Binary标准协议解析，整合重构协议内容
 
