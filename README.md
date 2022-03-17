@@ -11,7 +11,7 @@
 
 ​		遥控器接收机S.BUS2接口连接至COM50，同时COM50向外发送修改后的S.BUS2协议控制推进器或舵。中间信号转换可借助FT232模块、接收机信号转换模块，切记S.BUS协议需硬件取反。
 
-​		组合导航目前支持维特智能品牌和瑞芬IMU560（非标准协议），连接至COM51。
+​		组合导航目前支持维特智能品牌和瑞芬IMU560，连接至COM51。
 
 ​		地面站地面站可通过数传电台（COM52）或4G连接，地面站暂不公开分享。
 
@@ -93,6 +93,10 @@
 
 1. Implement qGeoCoordinate, cancel Import PySide2
 2. Simulated geographic coordinates update
+
+2022.03.17
+
+1.Add FDILink protocol correlation methods
 
 
 
