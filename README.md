@@ -1,6 +1,6 @@
 # USVControl
 
-2022.03.02
+2022.03.17
 
 #### 介绍
 
@@ -22,6 +22,22 @@
 ​		AppData中csv格式文件为日志信息
 
 ​		仿真环境使用Airsim，车模型，代码在Airsim文件夹，相关配置教程请自行百度，navigation_type设置为airsim
+
+
+
+#### 实验图片
+
+仿真环境测试
+
+![image-20220221163002292](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220221163002292.png)
+
+部署测试
+
+![557dbde9521f06c42232a0a7b7bd5fb](https://gitee.com/sttdo/picture/raw/master/img/2022/02/557dbde9521f06c42232a0a7b7bd5fb.jpg)
+
+路点追踪（任务模式）
+
+![image-20220226224850116](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220226224850116.png)
 
 ​		
 
@@ -96,7 +112,8 @@
 
 2022.03.17
 
-1.Add FDILink protocol correlation methods
+1. Add FDILink protocol correlation methods
+2. Support FDILink GNSS/IMU
 
 
 
@@ -109,22 +126,6 @@
 4. 共享内存
 
    
-
-#### 实验图片
-
-仿真环境测试
-
-![image-20220221163002292](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220221163002292.png)
-
-部署测试
-
-![557dbde9521f06c42232a0a7b7bd5fb](https://gitee.com/sttdo/picture/raw/master/img/2022/02/557dbde9521f06c42232a0a7b7bd5fb.jpg)
-
-路点追踪（任务模式）
-
-![image-20220226224850116](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220226224850116.png)
-
-
 
 #### 参与贡献
 

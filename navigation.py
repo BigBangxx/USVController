@@ -6,6 +6,7 @@ import serial
 import time
 import socket
 
+from Protocols.FDILink import FDILink
 from SelfBuiltModul.func import degrees_to_radians, to_signed_number
 from ground_control_station import calculate_header_lrc, calculate_crc16_ccitt
 
@@ -14,22 +15,23 @@ class Navigation:
     """组合导航模块"""
 
     def __init__(self, usv):
-        self.data = {'location': {'latitude': 0.0, 'longitude': 0.0, 'altitude': 0.0},
+        self.data = {'location': {'latitude': 0.0, 'longitude': 0.0, 'altitude': 0.0, 'hACC': 100, 'vACC': 100},
                      'posture': {'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0},
-                     'velocity': {'speed': 0.0, 'north': 0.0, 'east': 0.0, 'down': 0.0},
+                     'velocity': {'speed': 0.0, 'north': 0.0, 'east': 0.0, 'down': 0.0, 'X': 0.0, 'Y': 0.0, 'Z': 0.0},
                      'gyroscope': {'X': 0.0, 'Y': 0.0, 'Z': 0.0},
                      'accelerometer': {'X': 0.0, 'Y': 0.0, 'Z': 0.0}, 'timestamp': 0.0, 'errors': 0, 'system_status': 0,
                      'filter_status': 0}
-        self.buffer = []
+        self.buffer = bytearray()
         self.packet = []
-        if usv.settings.navigation_type == 'wit' or usv.settings.navigation_type == 'rion':
-            self.navigation = serial.Serial(usv.settings.navigation_com, usv.settings.navigation_baudrate, timeout=0,
-                                            write_timeout=0)
+
         if usv.settings.navigation_type == 'airsim':
             ip_port = ('0.0.0.0', usv.settings.airsim_port)
             self.navigation_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.navigation_socket.bind(ip_port)
             self.navigation_socket.setblocking(False)
+        else:
+            self.navigation = serial.Serial(usv.settings.navigation_com, usv.settings.navigation_baudrate, timeout=0,
+                                            write_timeout=0)
 
     def n_run(self, usv):
         if usv.settings.navigation_type == 'wit':
@@ -38,6 +40,49 @@ class Navigation:
             self.airsim_decode(usv)
         elif usv.settings.navigation_type == 'rion':
             self.rion_decode()
+        elif usv.settings.navigation_type == 'fdi':
+            self.fdi_device_decode()
+
+    def fdi_device_decode(self):
+
+        self.buffer += self.navigation.read(self.navigation.in_waiting)
+
+        while True:
+            packet_id, packet_data, errors = FDILink.decode(self.buffer, self.data["errors"])
+            if packet_id is None:
+                break
+            if packet_id == 0x5C:
+                data_field = struct.unpack('<dddff', packet_data)
+                self.data['location']['latitude'] = data_field[0]
+                self.data['location']['longitude'] = data_field[1]
+                self.data['location']['altitude'] = data_field[2]
+                self.data['location']['hACC'] = data_field[3]
+                self.data['location']['vACC'] = data_field[4]
+            elif packet_id == 0x5F:
+                data_field = struct.unpack('<fff', packet_data)
+                self.data['velocity']['north'] = data_field[0]
+                self.data['velocity']['east'] = data_field[1]
+                self.data['velocity']['down'] = data_field[2]
+            elif packet_id == 0x60:
+                data_field = struct.unpack('<fff', packet_data)
+                self.data['velocity']['X'] = data_field[0]
+                self.data['velocity']['Y'] = data_field[1]
+                self.data['velocity']['Z'] = data_field[2]
+            elif packet_id == 0x61:
+                data_field = struct.unpack('<fff', packet_data)
+                self.data['accelerometer']['X'] = data_field[0]
+                self.data['accelerometer']['Y'] = data_field[1]
+                self.data['accelerometer']['Z'] = data_field[2]
+            elif packet_id == 0x63:
+                data_field = struct.unpack('<fff', packet_data)
+                self.data['posture']['roll'] = data_field[0]
+                self.data['posture']['pitch'] = data_field[1]
+                self.data['posture']['yaw'] = data_field[2]
+            elif packet_id == 0x66:
+                data_field = struct.unpack('<fff', packet_data)
+                self.data['gyroscope']['X'] = data_field[0]
+                self.data['gyroscope']['Y'] = data_field[1]
+                self.data['gyroscope']['Z'] = data_field[2]
 
     def wit_decode(self):
         """接受维特组合导航数据并解析"""
@@ -106,10 +151,6 @@ class Navigation:
             self.packet = self.buffer[1:10]
 
             del self.buffer[:11]
-
-    def encode(self):
-        """打包维特导航数据"""
-        pass
 
     def rion_decode(self):
         self.buffer += self.navigation.read(self.navigation.in_waiting)
