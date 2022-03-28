@@ -8,6 +8,7 @@ import socket
 from Protocols.FDILink import FDILink
 from Protocols.Wit import Wit
 from Protocols.Rion import Rion
+from Protocols.Anpp import Anpp
 from ground_control_station import calculate_header_lrc, calculate_crc16_ccitt
 
 
@@ -42,9 +43,38 @@ class Navigation:
             self.rion_decode()
         elif usv.settings.navigation_type == 'fdi':
             self.fdi_device_decode()
+        elif usv.settings.navigation_type == 'anpp':
+            self.anpp_decode()
+
+    def anpp_decode(self):
+        self.buffer += self.navigation.read(self.navigation.in_waiting)
+        while True:
+            packet_id, packet_data, errors = Anpp.decode(self.buffer, self.data["errors"])
+            if packet_id is None:
+                break
+            elif packet_id == 0x20:
+                data_field = struct.unpack('<HHIIdddffffffffffffffff', packet_data)
+                self.data['posture']['roll'] = data_field[14]  # 输出姿态角，单位rad
+                self.data['posture']['pitch'] = data_field[15]
+                self.data['posture']['yaw'] = data_field[16]
+                self.data['gyroscope']['X'] = data_field[17]  # 输出角速率，单位rad/s
+                self.data['gyroscope']['Y'] = data_field[18]
+                self.data['gyroscope']['Z'] = data_field[19]
+                self.data['accelerometer']['X'] = data_field[10]  # 输出加速度，单位m/s2
+                self.data['accelerometer']['Y'] = data_field[11]
+                self.data['accelerometer']['Z'] = data_field[12]
+                self.data['location']['latitude'] = data_field[4]  # 输出滤波补偿后得经纬度（单位：度）高度（单位：米）
+                self.data['location']['longitude'] = data_field[5]
+                self.data['location']['altitude'] = data_field[6]
+                self.data['velocity']['north'] = data_field[7]  # 输出三维速度单位m/s
+                self.data['velocity']['east'] = data_field[8]
+                self.data['velocity']['down'] = data_field[9]
+                self.data['system_status'] = data_field[0]
+                self.data['filter_status'] = data_field[1]
+
+            self.data['timestamp'] = time.time()
 
     def fdi_device_decode(self):
-
         self.buffer += self.navigation.read(self.navigation.in_waiting)
 
         while True:
@@ -86,7 +116,6 @@ class Navigation:
 
     def wit_decode(self):
         """接受维特组合导航数据并解析"""
-
         self.buffer += self.navigation.read(self.navigation.in_waiting)
         while True:
             packet_id, packet_data, errors = Wit.decode(self.buffer, self.data["errors"])
@@ -136,24 +165,25 @@ class Navigation:
             if packet_id is None:
                 break
             elif packet_id == 0x90:
-                self.data['posture']['roll'] = packet_data[0]  # 输出姿态角，单位rad
-                self.data['posture']['pitch'] = packet_data[1]
-                yaw = packet_data[2]
+                data_field = struct.unpack('>fffffffffdddfff', packet_data)
+                self.data['posture']['roll'] = data_field[0]  # 输出姿态角，单位rad
+                self.data['posture']['pitch'] = data_field[1]
+                yaw = data_field[2]
                 if yaw < 0:
                     yaw += 2 * math.pi
                 self.data['posture']['yaw'] = yaw
-                self.data['gyroscope']['X'] = packet_data[3]  # 输出角速率，单位rad/s
-                self.data['gyroscope']['Y'] = packet_data[4]
-                self.data['gyroscope']['Z'] = packet_data[5]
-                self.data['accelerometer']['X'] = packet_data[6]  # 输出加速度，单位m/s2
-                self.data['accelerometer']['Y'] = packet_data[7]
-                self.data['accelerometer']['Z'] = packet_data[8]
-                self.data['location']['latitude'] = packet_data[9]  # 输出滤波补偿后得经纬度（单位：度）高度（单位：米）
-                self.data['location']['longitude'] = packet_data[10]
-                self.data['location']['altitude'] = packet_data[11]
-                self.data['velocity']['north'] = packet_data[12]  # 输出三维速度单位m/s
-                self.data['velocity']['east'] = packet_data[13]
-                self.data['velocity']['down'] = packet_data[14]
+                self.data['gyroscope']['X'] = data_field[3]  # 输出角速率，单位rad/s
+                self.data['gyroscope']['Y'] = data_field[4]
+                self.data['gyroscope']['Z'] = data_field[5]
+                self.data['accelerometer']['X'] = data_field[6]  # 输出加速度，单位m/s2
+                self.data['accelerometer']['Y'] = data_field[7]
+                self.data['accelerometer']['Z'] = data_field[8]
+                self.data['location']['latitude'] = data_field[9]  # 输出滤波补偿后得经纬度（单位：度）高度（单位：米）
+                self.data['location']['longitude'] = data_field[10]
+                self.data['location']['altitude'] = data_field[11]
+                self.data['velocity']['north'] = data_field[12]  # 输出三维速度单位m/s
+                self.data['velocity']['east'] = data_field[13]
+                self.data['velocity']['down'] = data_field[14]
 
             self.data['timestamp'] = time.time()
 
