@@ -4,8 +4,8 @@ class Wit:
     __frame_length = 11
 
     @staticmethod
-    def encode(paket_data: bytes, paket_id: int):
-        head_date = bytearray((0x55, paket_id)) + paket_data
+    def encode(packet_data: bytes, packet_id: int):
+        head_date = bytearray((0x55, packet_id)) + packet_data
         check_sum = bytes((Wit.__check_sum(head_date),))
         return head_date + check_sum
 

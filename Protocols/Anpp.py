@@ -7,13 +7,13 @@ class Anpp:
     __frame_header_length = 5  # The data length except packet data
 
     @staticmethod
-    def encode(paket_data: bytes, paket_id: int):
-        crc16 = Anpp.__calculate_crc16_ccitt(paket_data)
-        header_list = [0, paket_id, len(paket_data), crc16 & 0xff, crc16 // 0x100]
+    def encode(packet_data: bytes, packet_id: int):
+        crc16 = Anpp.__calculate_crc16_ccitt(packet_data)
+        header_list = [0, packet_id, len(packet_data), crc16 & 0xff, crc16 // 0x100]
         header_list[0] = Anpp.__calculate_header_lrc(header_list)
         header_bytes = struct.pack('<BBBBB', header_list)
 
-        return header_bytes + paket_data
+        return header_bytes + packet_data
 
     @staticmethod
     def decode(buffer: bytearray, errors: int):

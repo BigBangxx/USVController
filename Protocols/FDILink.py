@@ -7,12 +7,12 @@ class FDILink:
     __frame_header_length = 5 + 3  # The data length except packet data
 
     @staticmethod
-    def encode(paket_data: bytes, paket_id: int, serial_number: int):
-        head = bytes((0xFC, paket_id, len(paket_data), serial_number))
+    def encode(packet_data: bytes, packet_id: int, serial_number: int):
+        head = bytes((0xFC, packet_id, len(packet_data), serial_number))
         crc8 = bytes((FDILink.__calculate_crc8_kermit(head),))
-        crc16 = FDILink.__calculate_crc16_kermit(paket_data)
+        crc16 = FDILink.__calculate_crc16_kermit(packet_data)
         crc16 = struct.pack('>H', crc16)
-        return head + crc8 + crc16 + paket_data + bytes((0xFD,))
+        return head + crc8 + crc16 + packet_data + bytes((0xFD,))
 
     @staticmethod
     def decode(buffer: bytearray, errors: int):
