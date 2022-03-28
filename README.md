@@ -117,8 +117,9 @@
 
 2022.03.28
 
-1. Add Wit protocol correlation methods
-2. Reconsitution wit_decode
+1. Add Wit、Rion、Anpp protocol correlation methods
+2. Reconsitution wit_decode、rion_decode
+2. Support ANPP GNSS/INS
 
 
 
