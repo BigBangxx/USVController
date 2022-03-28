@@ -115,6 +115,11 @@
 1. Add FDILink protocol correlation methods
 2. Support FDILink GNSS/IMU
 
+2022.03.28
+
+1. Add Wit protocol correlation methods
+2. Reconsitution wit_decode
+
 
 
 #### 开发计划
