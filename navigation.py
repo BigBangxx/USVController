@@ -7,7 +7,7 @@ import time
 import socket
 
 from Protocols.FDILink import FDILink
-from SelfBuiltModul.func import degrees_to_radians, to_signed_number
+from Protocols.Wit import Wit
 from ground_control_station import calculate_header_lrc, calculate_crc16_ccitt
 
 
@@ -88,69 +88,46 @@ class Navigation:
         """接受维特组合导航数据并解析"""
 
         self.buffer += self.navigation.read(self.navigation.in_waiting)
-
-        while len(self.buffer) >= 11:
-            if self.buffer[0] != 0x55:
-                del self.buffer[0]
-                continue
-            if self.buffer[10] != self.wit_check_sum(self.buffer):
-                del self.buffer[0]
-                self.data['errors'] += 1
-                continue
-
-            if self.buffer[1] == 0x57:
+        while True:
+            packet_id, packet_data, errors = Wit.decode(self.buffer, self.data["errors"])
+            if packet_id is None:
+                break
+            elif packet_id == 0x57:
                 # 位置
-                latitude = to_signed_number(
-                    self.buffer[9] << 24 | self.buffer[8] << 16 | self.buffer[7] << 8 | self.buffer[6], 4)
-                longitude = to_signed_number(
-                    self.buffer[5] << 24 | self.buffer[4] << 16 | self.buffer[3] << 8 | self.buffer[2], 4)
-                self.data['location']['latitude'] = degrees_to_radians(
-                    latitude // 10000000 + latitude % 10000000 / 100000 / 60)
-                self.data['location']['longitude'] = degrees_to_radians(
-                    longitude // 10000000 + latitude % 10000000 / 100000 / 60)
-
-            elif self.buffer[1] == 0x53:
+                position = struct.unpack('<ii', packet_data)
+                self.data['location']['latitude'] = math.radians(
+                    position[0] // 10000000 + position[0] % 10000000 / 100000 / 60)
+                self.data['location']['longitude'] = math.radians(
+                    position[1] // 10000000 + position[1] % 10000000 / 100000 / 60)
+            elif packet_id == 0x53:
                 # 姿态
-                self.data['posture']['pitch'] = to_signed_number(self.buffer[3] << 8 | self.buffer[2],
-                                                                 2) / 32768.0 * math.pi
-                self.data['posture']['roll'] = to_signed_number(self.buffer[5] << 8 | self.buffer[4],
-                                                                2) / 32768.0 * math.pi
-                self.data['posture']['yaw'] = -to_signed_number(self.buffer[7] << 8 | self.buffer[6],
-                                                                2) / 32768.0 * math.pi
+                posture = struct.unpack('<hhhh', packet_data)
+                self.data['posture']['pitch'] = posture[0] / 32768.0 * math.pi
+                self.data['posture']['roll'] = posture[1] / 32768.0 * math.pi
+                self.data['posture']['yaw'] = -posture[2] / 32768.0 * math.pi
                 if self.data['posture']['yaw'] < 0:
                     self.data['posture']['yaw'] += 2 * math.pi
 
-            elif self.buffer[1] == 0x58:
+            elif packet_id == 0x58:
                 # 速度
-                self.data['velocity']['speed'] = (self.buffer[9] << 24 | self.buffer[8] << 16 | self.buffer[7] << 8 |
-                                                  self.buffer[6]) / 1000 / 3.6
+                velocity = struct.unpack('<hhI', packet_data)
+                self.data['velocity']['speed'] = velocity[2] / 1000 / 3.6
 
-            elif self.buffer[1] == 0x52:
+            elif packet_id == 0x52:
                 # 角加速度
-                self.data['gyroscope']['Y'] = degrees_to_radians(to_signed_number
-                                                                 (self.buffer[3] << 8 | self.buffer[2],
-                                                                  2) / 32768.0 * 2000)
-                self.data['gyroscope']['X'] = degrees_to_radians(to_signed_number
-                                                                 (self.buffer[5] << 8 | self.buffer[4],
-                                                                  2) / 32768.0 * 2000)
-                self.data['gyroscope']['Z'] = -degrees_to_radians(to_signed_number
-                                                                  (self.buffer[7] << 8 | self.buffer[6],
-                                                                   2) / 32768.0 * 2000)
+                gyroscope = struct.unpack('<hhhh', packet_data)
+                self.data['gyroscope']['Y'] = math.radians(gyroscope[0] / 32768.0 * 2000)
+                self.data['gyroscope']['X'] = math.radians(gyroscope[1] / 32768.0 * 2000)
+                self.data['gyroscope']['Z'] = math.radians(-gyroscope[2] / 32768.0 * 2000)
 
-            elif self.buffer[1] == 0x51:
+            elif packet_id == 0x51:
                 # 加速度
-                self.data['accelerometer']['Y'] = to_signed_number(self.buffer[3] << 8 | self.buffer[2],
-                                                                   2) / 32768.0 * 16 * 9.8
-                self.data['accelerometer']['X'] = to_signed_number(self.buffer[5] << 8 | self.buffer[4],
-                                                                   2) / 32768.0 * 16 * 9.8
-                self.data['accelerometer']['Z'] = -to_signed_number(self.buffer[7] << 8 | self.buffer[6],
-                                                                    2) / 32768.0 * 16 * 9.8
+                accelerometer = struct.unpack('<hhhh', packet_data)
+                self.data['accelerometer']['Y'] = accelerometer[0] / 32768.0 * 16 * 9.8
+                self.data['accelerometer']['X'] = accelerometer[1] / 32768.0 * 16 * 9.8
+                self.data['accelerometer']['Z'] = -accelerometer[2] / 32768.0 * 16 * 9.8
 
             self.data['timestamp'] = time.time()
-
-            self.packet = self.buffer[1:10]
-
-            del self.buffer[:11]
 
     def rion_decode(self):
         self.buffer += self.navigation.read(self.navigation.in_waiting)
@@ -245,11 +222,6 @@ class Navigation:
                 self.data['accelerometer']['X'] = command[13]
                 self.data['accelerometer']['Z'] = command[14]
                 del self.buffer[:packet_length]
-
-    @staticmethod
-    def wit_check_sum(data):
-        return (data[0] + data[1] + data[2] + data[3] + data[4] + data[5] + data[6] + data[7] + data[8] + data[
-            9]) & 0xff
 
     @staticmethod
     def __calculate_crc16_kermit(data: bytes):
