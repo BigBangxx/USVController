@@ -52,7 +52,7 @@ class Navigation:
             packet_id, packet_data, errors = Anpp.decode(self.buffer, self.data["errors"])
             if packet_id is None:
                 break
-            elif packet_id == 0x20:
+            elif packet_id == 20:
                 data_field = struct.unpack('<HHIIdddffffffffffffffff', packet_data)
                 self.data['posture']['roll'] = data_field[14]  # 输出姿态角，单位rad
                 self.data['posture']['pitch'] = data_field[15]
