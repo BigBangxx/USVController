@@ -1,12 +1,12 @@
 import threading
 
-from remote_control_unit import RemoteControlUnit
-from navigation import Navigation
-from control import Control
-from settings import Settings
-from ground_control_station import GroundControlStation
-from mission import Mission
-from log import Log
+from Communicator.remote_control_unit import RemoteControlUnit
+from Sensors.navigation import Navigation
+from GNC.control import Control
+from Utilities.settings import Settings
+from Communicator.ground_control_station import GroundControlStation
+from Utilities.mission import Mission
+from Utilities.log import Log
 
 
 class UsvControl:

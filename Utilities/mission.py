@@ -1,22 +1,34 @@
-import math
+from xml.etree import ElementTree
 
 
-def degrees_to_radians(degrees):
-    """degrees go to radians"""
-    return degrees / 180 * math.pi
+class Mission:
+    """任务相关类"""
 
+    def __init__(self, usv_id):
+        self.file_name = f"AppData/{usv_id}.xml"
 
-def radians_to_degrees(radians):
-    """radians go to degrees"""
-    return radians * 180 / math.pi
+    def read(self):
+        """去读xml文件，返回路点列表"""
+        waypoints = []
+        with open(self.file_name) as wp:
+            tree = ElementTree.parse(wp)
+            root = tree.getroot()
+            for i in root:
+                if i.tag == 'waypoint':
+                    waypoints.append(
+                        (float(i.attrib['latitude']), float(i.attrib['longitude']), float(i.attrib['tolerance'])))
+        return waypoints
 
-
-def to_signed_number(number, max_bytes):
-    """Converts a binary number to a signed number"""
-    if number < 2 ** (8 * max_bytes - 1):
-        return number
-    else:
-        return number - 2 ** (8 * max_bytes)
+    def write(self, waypoints):
+        """将路点写入XML文件"""
+        root = ElementTree.Element('mission')
+        for way_point in waypoints:
+            sub = ElementTree.SubElement(root, 'waypoint',
+                                         {'latitude': str(way_point[0]), 'longitude': str(way_point[1]),
+                                          'tolerance': str(way_point[2])})
+        pretty_xml(root, '\t', '\n')
+        tree = ElementTree.ElementTree(root)
+        tree.write(self.file_name, 'UTF-8', True)
 
 
 def pretty_xml(element, indent, newline, level=0):  # elemnt为传进来的Elment类，参数indent用于缩进，newline用于换行
