@@ -4,7 +4,7 @@ import time
 
 import serial
 import array
-from ground_control_station import calculate_header_bytes, calculate_crc16_ccitt
+from Communicator.ground_control_station import calculate_header_bytes, calculate_crc16_ccitt
 
 
 class RemoteControlUnit:

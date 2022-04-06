@@ -1,6 +1,6 @@
 import math
 
-from geocoordinate import GeoCoordinate
+from Utilities.geocoordinate import GeoCoordinate
 
 
 def calculate_los_angle(qgc_previous: GeoCoordinate, qgc_current: GeoCoordinate, qgc_next: GeoCoordinate,
