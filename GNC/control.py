@@ -3,7 +3,7 @@ import time
 
 from Utilities.global_data import *
 from Utilities.geocoordinate import GeoCoordinate as Point
-from Utilities.guidance import calculate_los_angle
+from GNC.guidance import calculate_los_angle
 
 
 class Control:
