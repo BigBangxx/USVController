@@ -1,43 +1,42 @@
 import threading
 
 from Communicator.remote_control_unit import RemoteControlUnit
+from Communicator.ground_control_station import GroundControlStation
 from Sensors.navigation import Navigation
 from GNC.control import Control
-from Utilities.settings import Settings
-from Communicator.ground_control_station import GroundControlStation
-from Utilities.mission import Mission
 from Utilities.log import Log
+
+from Utilities.global_data import Rcu_data, Gcs_command, Gcs_heart_beat, Nav_data, Ctrl_data, Pid, settings
 
 
 class UsvControl:
     """程序入口"""
 
     def __init__(self):
-        self.settings = Settings()
-        self.futaba = RemoteControlUnit(self.settings.sbus_com)
-        self.navigation = Navigation(self)
-        self.control = Control(self)
-        self.gcs = GroundControlStation(self)
-        self.mission = Mission(self.settings.usv_id)
-        self.log = Log(self.settings.usv_id)
+        self.futaba = RemoteControlUnit()
+        self.navigation = Navigation()
+        self.control = Control()
+        self.gcs = GroundControlStation()
+        self.log = Log()
+        pass
 
     def ms10_run(self):
-        self.futaba.rcu_run(self)
-        self.control.c_run(self)
-        self.navigation.n_run(self)
-        self.gcs.g_run(self)
+        self.futaba.rcu_run()
+        self.control.c_run()
+        self.navigation.n_run()
+        self.gcs.g_run()
         self.futaba.backup_data()
-        self.log.write_log(self)
+        self.log.write_log()
         timer_10 = threading.Timer(0.01, self.ms10_run, )
         timer_10.start()
 
     def ms1000_run(self):
-        print(self.futaba.receive_data)
-        print(self.navigation.data)
-        print(self.control.data)
-        print(self.control.pid)
-        print(self.gcs.heart_beat)
-        print(self.gcs.command)
+        print(Rcu_data)
+        print(Nav_data)
+        print(Ctrl_data)
+        print(Pid)
+        print(Gcs_heart_beat)
+        print(Gcs_command)
         timer_1000 = threading.Timer(1, self.ms1000_run, )
         timer_1000.start()
 

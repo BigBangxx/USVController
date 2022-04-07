@@ -1,15 +1,25 @@
+from Utilities.settings import Settings
+from Utilities.mission import Mission
+
+# Settings
+settings = Settings()
+
+# Mission
+mission = Mission(settings.usv_id)
+
 # PID parameter
-Pid = {'id': 0, 'heading_p': 0, 'heading_i': 0, 'heading_d': 0, 'speed_p': 0, 'speed_i': 0, 'speed_d': 0,
-       'position_p': 0,
-       'position_i': 0, 'position_d': 0}
+Pid = {'id': settings.usv_id, 'heading_p': settings.heading_p, 'heading_i': settings.heading_i,
+       'heading_d': settings.heading_d, 'speed_p': settings.speed_p, 'speed_i': settings.speed_i,
+       'speed_d': settings.speed_d, 'position_p': settings.position_p, 'position_i': settings.position_i,
+       'position_d': settings.position_d}
 
 # Control parameter
-Ctrl_data = {'mode': 'lock', 'thrust': 0, 'rudder': 0, 'ignition': 0}
+Ctrl_data = {'status': 0, 'mode': 'lock', 'thrust': 0, 'rudder': 0, 'ignition': 0}
 
 # Remoter Control Unit
 Rcu_data = {'channel1': 0, 'channel2': 0, 'channel3': 0, 'channel4': 0, 'channel5': 0, 'channel6': 0, 'channel7': 0,
             'channel8': 0, 'channel9': 0, 'channel10': 0, 'channel11': 0, 'channel12': 0, 'channel13': 0,
-            'channel14': 0, 'channel15': 0, 'channel16': 0, 'flag': 0, 'error': 0, }
+            'channel14': 0, 'channel15': 0, 'channel16': 0, 'flag': 12, 'error': 0, }
 
 # Navigation
 Nav_data = {'location': {'latitude': 0.0, 'longitude': 0.0, 'altitude': 0.0, 'hACC': 100, 'vACC': 100},

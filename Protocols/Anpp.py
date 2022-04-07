@@ -11,7 +11,8 @@ class Anpp:
         crc16 = Anpp.__calculate_crc16_ccitt(packet_data)
         header_list = [0, packet_id, len(packet_data), crc16 & 0xff, crc16 // 0x100]
         header_list[0] = Anpp.__calculate_header_lrc(header_list)
-        header_bytes = struct.pack('<BBBBB', header_list)
+        header_bytes = struct.pack('<BBBBB', header_list[0], header_list[1], header_list[2], header_list[3],
+                                   header_list[4])
 
         return header_bytes + packet_data
 
