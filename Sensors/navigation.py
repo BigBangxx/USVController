@@ -61,7 +61,7 @@ class Navigation:
                 Nav_data['accelerometer']['X'] = data_field[10]  # 输出加速度，单位m/s2
                 Nav_data['accelerometer']['Y'] = data_field[11]
                 Nav_data['accelerometer']['Z'] = data_field[12]
-                Nav_data['location']['latitude'] = data_field[4]  # 输出滤波补偿后得经纬度（单位：度）高度（单位：米）
+                Nav_data['location']['latitude'] = data_field[4]  # 输出滤波补偿后得经纬度（单位：rad）高度（单位：米）
                 Nav_data['location']['longitude'] = data_field[5]
                 Nav_data['location']['altitude'] = data_field[6]
                 Nav_data['velocity']['north'] = data_field[7]  # 输出三维速度单位m/s
@@ -163,7 +163,7 @@ class Navigation:
             if packet_id is None:
                 break
             elif packet_id == 0x90:
-                data_field = struct.unpack('>fffffffffdddfff', packet_data)
+                data_field = struct.unpack('<ffffffffffffffffBBffdddffff', packet_data)
                 Nav_data['posture']['roll'] = data_field[0]  # 输出姿态角，单位rad
                 Nav_data['posture']['pitch'] = data_field[1]
                 yaw = data_field[2]
@@ -176,12 +176,12 @@ class Navigation:
                 Nav_data['accelerometer']['X'] = data_field[6]  # 输出加速度，单位m/s2
                 Nav_data['accelerometer']['Y'] = data_field[7]
                 Nav_data['accelerometer']['Z'] = data_field[8]
-                Nav_data['location']['latitude'] = data_field[9]  # 输出滤波补偿后得经纬度（单位：度）高度（单位：米）
-                Nav_data['location']['longitude'] = data_field[10]
-                Nav_data['location']['altitude'] = data_field[11]
-                Nav_data['velocity']['north'] = data_field[12]  # 输出三维速度单位m/s
-                Nav_data['velocity']['east'] = data_field[13]
-                Nav_data['velocity']['down'] = data_field[14]
+                Nav_data['location']['latitude'] = math.radians(data_field[20])  # 输出滤波补偿后得经纬度（单位：度）高度（单位：米）
+                Nav_data['location']['longitude'] = math.radians(data_field[21])
+                Nav_data['location']['altitude'] = data_field[22]
+                Nav_data['velocity']['north'] = data_field[23]  # 输出三维速度单位m/s
+                Nav_data['velocity']['east'] = data_field[24]
+                Nav_data['velocity']['down'] = data_field[25]
 
             Nav_data['timestamp'] = time.time()
 
