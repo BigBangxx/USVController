@@ -82,6 +82,8 @@ class Control:
                     Ctrl_data['mode'] = 'trajectory_point'
                 elif Gcs_command['setting'] == 8:
                     Ctrl_data['mode'] = 'mission'
+            elif not rcu_connected and Gcs_command['setting'] == 0:
+                Ctrl_data['mode'] = 'lock'
             else:  # 遥控器连接，地面站未连接或遥控器活跃，遥控器控制
                 Ctrl_data['status'] = 1
                 if Rcu_data['channel5'] > 1360:
