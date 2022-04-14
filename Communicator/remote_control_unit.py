@@ -1,5 +1,6 @@
 import serial
 
+from GNC.control import limit_1000
 from Utilities.global_data import Ctrl_data, Rcu_data, settings
 
 
@@ -22,9 +23,9 @@ class RemoteControlUnit:
             self.send_data = Rcu_data.copy()
             if settings.is_catamaran:
                 self.send_data['channel3'] = int(
-                    1024 + ((Ctrl_data['rudder'] + Ctrl_data['thrust']) * 0.672))  # 左电机
+                    1024 + (limit_1000(Ctrl_data['rudder'] + Ctrl_data['thrust']) * 0.672))  # 左电机
                 self.send_data['channel1'] = int(
-                    1024 + ((Ctrl_data['thrust'] - Ctrl_data['rudder']) * 0.672))  # 右电机
+                    1024 + (limit_1000(Ctrl_data['thrust'] - Ctrl_data['rudder']) * 0.672))  # 右电机
             else:
                 self.send_data['channel3'] = int(1024 + (Ctrl_data['thrust'] * 0.672))  # 推进器
                 self.send_data['channel1'] = int(1024 + (Ctrl_data['rudder'] * 0.672))  # 舵
