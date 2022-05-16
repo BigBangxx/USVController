@@ -1,29 +1,10 @@
-# USVControl
+# USVController
 
-2022.03.17
+2022.05.16
 
 #### 介绍
 
 无人艇控制程序，也可控无人小车（python语言）。
-
-#### 使用说明
-​		支持遥控器和地面站控制，支持差速模型和舵模型（通过配置文件is_catamaran参数配置）。
-
-​		遥控器接收机S.BUS2接口连接至COM50，同时COM50向外发送修改后的S.BUS2协议控制推进器或舵。中间信号转换可借助FT232模块、接收机信号转换模块，切记S.BUS协议需硬件取反。
-
-​		组合导航目前支持维特智能品牌和瑞芬IMU560，连接至COM51。
-
-​		地面站地面站可通过数传电台（COM52）或4G连接，地面站暂不公开分享。
-
-​		遥控器通道三控制前进倒退，通道一控制转向。
-
-​		以上参数均可通过AppData/settings.ini文件配置
-
-​		AppData中csv格式文件为日志信息
-
-​		仿真环境使用Airsim，车模型，代码在Airsim文件夹，相关配置教程请自行百度，navigation_type设置为airsim
-
-
 
 #### 实验图片
 
@@ -41,104 +22,70 @@
 
 ​		
 
+#### 使用说明
+
+支持遥控器和地面站控制，支持双体船模型和单体船模型。
+
+遥控器通道三控制前进倒退，通道一控制转向。
+
+**硬件：**航模遥控器、接收机、接收机信号转换模块和串口转USB模块（必须，连接见下图，可联系购买定制板子）、组合导航、数传电台
+
+**硬件连接：**所有外设均使用USB连接至控制器。左（主）推进器连接接收机信号转换模块Channel3、右（舵）推进器连接收机信号转换模块Channel1。
 
 
 
-#### 更新记录
+![硬件链接](https://gitee.com/sttdo/picture/raw/master/img/2022/05/硬件链接.png)
 
-2021.11.26 第一版，仅支持遥控功能
+使用*python main.py*运行船控，首次运行后增加AppData文件夹，其中settings.ini为配置文件（重启后生效）、csv格式为日志文件、xml格式为任务信息文件。
 
-2021.11.27 添加维特组合导航协议解析 COM51
+**仿真环境**
 
-2021.11.30
-
-1. 增加PID类
-2. 模式增加”锁定，手动，直线（角速度与舵量闭环）“，由通道5控制
-3. 增加LOS制导方法（路点模式使用）
-4. 增加与地面站通讯功能（协议解析及通讯维持） 
-
-2021.12.1
-
-1. RemoterControlUnit类增加记录上一周期数据
-2. Control类增加地面站部分控制模式（gcs、heading、speed）、遥控器和地面站控制逻辑为遥控器为主
-3. GroundControlStation类修复参数名错误和serial  read字节数BUG
-4. 打印数据，供调试使用，暂时放弃共享内存方法，更改主函数名和Timer
-
-2021.12.2
-
-1. Add Mission class
-2. Improve ground control station protocol analysis
-
-2021.12.3
-
-1. Add 'waypoint' 'trajectory' 'mission' control mode
-2. Fix the mission upload function
-3. Pack EXE
-
-2021.12.4
-
-1. Add the log writing function 
-
-2021.12.9
-
-1. Add simulation features(airsim)
-
-2021.12.10
-
-1. Add ini feature
-2. Change the mode of communication with the airsim to non-blocking
-3. The simulation environment can be used, but the ground control station data has a large delay after connection
-
-2022.02.21
-
-1. Supports riven(rion) IMU560 integrated navigation
-
-2022.02.25
-
-1. Communication with the ground station supports network port communication.
-2. Simulation code optimization
-
-2022.02.26
-
-1. Fix rcu delay bug
-1. Optimize the code
-1. Set PID parameters by Settings.ini
-1. Support the usv that have a propeller and a rudder
-
-2022.03.02
-
-1. Implement qGeoCoordinate, cancel Import PySide2
-2. Simulated geographic coordinates update
-
-2022.03.17
-
-1. Add FDILink protocol correlation methods
-2. Support FDILink GNSS/IMU
-
-2022.03.28
-
-1. Add Wit、Rion、Anpp protocol correlation methods
-2. Reconsitution wit_decode、rion_decode
-2. Support ANPP GNSS/INS
+仿真环境使用Airsim，车模型，代码在Airsim文件夹，相关配置教程请自行百度，navigation_type设置为airsim
 
 
 
 #### 开发计划
 
-1. 代码部署测试
+1. 定位保持
+2. 编队
 
-3. 增加Ascii和Binary标准协议解析，整合重构协议内容
 
-4. 共享内存
 
-   
+#### 项目合作、开发、交流，联系sangtongtong@qq.com
 
-#### 参与贡献
 
-1. Fork 本仓库
 
-2. 新建 Feat_xxx 分支
+#### **配置文件信息**
 
-3. 提交代码
+`[usv]`
+	`usv_id   			 //USV编号`
+	`los_distance  	 //视线法制导视线距离`
+	`is_catamaran   	 //True为双体船模型、False为单体船模型`
+	`heading_p   		 //航向P参数`
+	`heading_i  		 //航向I参数`
+	`heading_d  		 //航向D参数`
+	`speed_p   		//速度P参数`
+	`speed_i  			 //速度I参数`
+	`speed_d   		//速度D参数`
+	`position_p  		 //位置P参数`
+	`position_i   		//位置I参数`
+	`position_d  		 //位置D参数`
 
-4. 新建 Pull Request
+`[rcu]`
+	`sbus_com 			//串口转USB模块连接端口号`
+
+`[navigation]`
+	`navigation_type		//使用导航的协议类型，目前支持ANPP、FDI、Rion、Wit`
+	`navigation_com		//导航连接端口号`
+	`navigation_baudrate 	//导航使用波特率`
+	`airsim_ip 			//Airsim所在IP`
+	`airsim_port 			//Airsim使用端口号`
+
+`[gcs]`
+	`communication_type 			// 与地面站通讯的方式，udp或serial`
+	`gcs_com						//串口通信连接端口号`
+	`server_ip 					//udp通讯使用透传服务器ip`
+	`server_port					//透传服务器端口号`
+	`gcs_disconnect_time_allow 	//地面站连接超时时间`
+	`gcs_waypoint_err 				//路点误差`
+
