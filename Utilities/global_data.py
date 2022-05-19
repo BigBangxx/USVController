@@ -17,7 +17,7 @@ Pid = {'id': settings.usv_id, 'heading_p': settings.heading_p, 'heading_i': sett
 Ctrl_data = {'status': 0, 'mode': 'lock', 'thrust': 0, 'rudder': 0, 'ignition': 0}
 
 # Remoter Control Unit
-Rcu_data = {'channel1': 1024, 'channel2': 0, 'channel3': 0, 'channel4': 0, 'channel5': 1024, 'channel6': 0,
+Rcu_data = {'channel1': 1024, 'channel2': 0, 'channel3': 1024, 'channel4': 0, 'channel5': 1024, 'channel6': 0,
             'channel7': 0, 'channel8': 0, 'channel9': 0, 'channel10': 0, 'channel11': 0, 'channel12': 0, 'channel13': 0,
             'channel14': 0, 'channel15': 0, 'channel16': 0, 'flag': 12, 'error': 0, }
 
