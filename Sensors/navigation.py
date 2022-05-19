@@ -40,9 +40,6 @@ class Navigation:
             self.__fdi_device_decode()
         elif settings.navigation_type == 'anpp':
             self.__anpp_decode()
-        Nav_data['velocity']['speed'] = math.sqrt(
-            Nav_data['velocity']['north'] * Nav_data['velocity']['north'] + Nav_data['velocity']['east'] *
-            Nav_data['velocity']['east'] + Nav_data['velocity']['down'] * Nav_data['velocity']['down'])
 
     def __anpp_decode(self):
         self.buffer += self.navigation.read(self.navigation.in_waiting)
@@ -69,6 +66,8 @@ class Navigation:
                 Nav_data['velocity']['down'] = data_field[9]
                 Nav_data['system_status'] = data_field[0]
                 Nav_data['filter_status'] = data_field[1]
+                Nav_data['velocity']['speed'] = Nav_data['velocity']['north'] * math.cos(Nav_data['posture']['yaw']) + \
+                                                Nav_data['velocity']['east'] * math.sin(Nav_data['posture']['yaw'])
 
             Nav_data['timestamp'] = time.time()
 
@@ -96,6 +95,8 @@ class Navigation:
                 Nav_data['velocity']['X'] = data_field[0]
                 Nav_data['velocity']['Y'] = data_field[1]
                 Nav_data['velocity']['Z'] = data_field[2]
+                Nav_data['velocity']['speed'] = Nav_data['velocity']['X']
+
             elif packet_id == 0x61:
                 data_field = struct.unpack('<fff', packet_data)
                 Nav_data['accelerometer']['X'] = data_field[0]
@@ -138,7 +139,7 @@ class Navigation:
             elif packet_id == 0x58:
                 # 速度
                 velocity = struct.unpack('<hhI', packet_data)
-                Nav_data['velocity']['speed'] = velocity[2] / 1000 / 3.6
+                Nav_data['velocity']['speed'] = velocity[2] / 1000 / 3.6  # wit的是速率
 
             elif packet_id == 0x52:
                 # 角加速度
@@ -182,6 +183,8 @@ class Navigation:
                 Nav_data['velocity']['north'] = data_field[23]  # 输出三维速度单位m/s
                 Nav_data['velocity']['east'] = data_field[24]
                 Nav_data['velocity']['down'] = data_field[25]
+                Nav_data['velocity']['speed'] = Nav_data['velocity']['north'] * math.cos(Nav_data['posture']['yaw']) + \
+                                                Nav_data['velocity']['east'] * math.sin(Nav_data['posture']['yaw'])
 
             Nav_data['timestamp'] = time.time()
 
@@ -220,6 +223,8 @@ class Navigation:
                 Nav_data['accelerometer']['Y'] = command[12]
                 Nav_data['accelerometer']['X'] = command[13]
                 Nav_data['accelerometer']['Z'] = command[14]
+                Nav_data['velocity']['speed'] = Nav_data['velocity']['north'] * math.cos(Nav_data['posture']['yaw']) + \
+                                                Nav_data['velocity']['east'] * math.sin(Nav_data['posture']['yaw'])
 
     def __airsim_send_command(self):
         data_bytes = struct.pack('<Hdhh', settings.usv_id, time.time(), Ctrl_data['rudder'], Ctrl_data['thrust'])
