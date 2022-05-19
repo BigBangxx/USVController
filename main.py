@@ -15,16 +15,16 @@ class UsvControl:
     def __init__(self):
         self.futaba = RemoteControlUnit()
         self.navigation = Navigation()
-        self.control = Control()
         self.gcs = GroundControlStation()
+        self.control = Control()
         self.log = Log()
         pass
 
     def ms10_run(self):
         self.futaba.rcu_run()
-        self.control.c_run()
         self.navigation.n_run()
         self.gcs.g_run()
+        self.control.c_run()
         self.futaba.backup_data()
         self.log.write_log()
         timer_10 = threading.Timer(0.01, self.ms10_run, )
