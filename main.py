@@ -31,7 +31,7 @@ class UsvControl:
         timer_10.start()
 
     def ms1000_run(self):
-        # os.system("clear")
+        os.system("clear")
         print(Rcu_data)
         print(Nav_data)
         print(Ctrl_data)
