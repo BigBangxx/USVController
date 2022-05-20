@@ -20,6 +20,7 @@ Ctrl_data = {'status': 0, 'mode': 'lock', 'thrust': 0, 'rudder': 0, 'ignition': 
 Rcu_data = {'channel1': 1024, 'channel2': 0, 'channel3': 1024, 'channel4': 0, 'channel5': 1024, 'channel6': 0,
             'channel7': 0, 'channel8': 0, 'channel9': 0, 'channel10': 0, 'channel11': 0, 'channel12': 0, 'channel13': 0,
             'channel14': 0, 'channel15': 0, 'channel16': 0, 'flag': 12, 'error': 0, }
+Rcu_last_data = Rcu_data.copy()
 
 # Navigation
 Nav_data = {'location': {'latitude': 0.0, 'longitude': 0.0, 'altitude': 0.0, 'hACC': 100, 'vACC': 100},

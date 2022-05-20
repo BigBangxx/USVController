@@ -1,20 +1,20 @@
 import serial
 
 from GNC.control import limit_1000
-from Utilities.global_data import Ctrl_data, Rcu_data, settings
+from Utilities.global_data import Ctrl_data, Rcu_data, Rcu_last_data, settings
 
 
 class RemoteControlUnit:
     """遥控器相关属性及方法"""
 
     def __init__(self):
-        self.last_data = Rcu_data.copy()
         self.send_data = Rcu_data.copy()
         self.sbus = serial.Serial(settings.sbus_com, 100000, serial.EIGHTBITS, serial.PARITY_EVEN, serial.STOPBITS_TWO,
                                   0, False, False, 0)
         self.buffer = bytearray()
 
     def rcu_run(self):
+        self.__backup()
         self.__decode()
         self.__send_command()
 
@@ -102,5 +102,9 @@ class RemoteControlUnit:
 
         return packet
 
-    def backup_data(self):
-        self.last_data = Rcu_data.copy()
+    @staticmethod
+    def __backup():
+        for last in list(Rcu_last_data.keys()):
+            for now in list(Rcu_data.keys()):
+                if now == last:
+                    Rcu_last_data[last] = Rcu_data[now]

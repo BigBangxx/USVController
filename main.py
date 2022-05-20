@@ -1,3 +1,4 @@
+import os
 import threading
 
 from Communicator.remote_control_unit import RemoteControlUnit
@@ -6,7 +7,7 @@ from Sensors.navigation import Navigation
 from GNC.control import Control
 from Utilities.log import Log
 
-from Utilities.global_data import Rcu_data, Gcs_command, Gcs_heart_beat, Nav_data, Ctrl_data, Pid, settings
+from Utilities.global_data import Rcu_data, Rcu_last_data, Gcs_command, Gcs_heart_beat, Nav_data, Ctrl_data, Pid
 
 
 class UsvControl:
@@ -25,12 +26,12 @@ class UsvControl:
         self.navigation.n_run()
         self.gcs.g_run()
         self.control.c_run()
-        self.futaba.backup_data()
         self.log.write_log()
         timer_10 = threading.Timer(0.01, self.ms10_run, )
         timer_10.start()
 
     def ms1000_run(self):
+        # os.system("clear")
         print(Rcu_data)
         print(Nav_data)
         print(Ctrl_data)

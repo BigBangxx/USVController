@@ -58,8 +58,9 @@ class Control:
     def __choose_mode():
         gcs_connected = time.time() - Gcs_heart_beat['timestamp'] < settings.gcs_disconnect_time_allow
         rcu_connected = (Rcu_data['flag'] & 0x04) == 0
-        rcu_activity = abs(Rcu_data['channel1'] - Rcu_data['channel1']) + abs(
-            Rcu_data['channel3'] - Rcu_data['channel3']) + abs(Rcu_data['channel5'] - Rcu_data['channel5']) > 10
+        rcu_activity = abs(Rcu_data['channel1'] - Rcu_last_data['channel1']) + abs(
+            Rcu_data['channel3'] - Rcu_last_data['channel3']) + abs(
+            Rcu_data['channel5'] - Rcu_last_data['channel5']) > 10
         if rcu_connected or gcs_connected:
             # setting  0：遥控器控制，1：地面站控制，2：航向，3：航速，4：航向+航速，5：路点，6：路点+航速，7：轨点，8：任务(推力手动)
             if rcu_activity:
@@ -183,7 +184,7 @@ class Control:
                 Gcs_command['desired_heading'] = self.point_current.azimuth2(point_next)
             else:
                 Gcs_command['desired_heading'] = calculate_los_angle(self.point_previous, self.point_current,
-                                                                         point_next, settings.los_distance)
+                                                                     point_next, settings.los_distance)
         self.last_setting = Gcs_command['setting']
 
         self.__heading()
