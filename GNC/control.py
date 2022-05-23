@@ -141,7 +141,7 @@ class Control:
             Ctrl_data['desired_heading'] = self.point_current.azimuth2(self.point_desired)
             self.__heading()
         else:
-            self.__lock()
+            self.__point_keeping()
 
     def __waypoint_speed(self):  # 6
         if self.point_current.distance2(self.point_desired) > settings.gcs_waypoint_err:
@@ -149,7 +149,7 @@ class Control:
             Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
             self.__heading_speed()
         else:
-            self.__lock()
+            self.__point_keeping()
 
     def __trajectory_point(self):  # 7
         Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
@@ -194,6 +194,23 @@ class Control:
         self.last_setting = Gcs_command['setting']
 
         self.__heading()
+
+    def __point_keeping(self):
+        desired_heading = self.point_current.azimuth2(self.point_desired)
+        if math.pi / 2 < abs(Nav_data['posture']['yaw'] - desired_heading) and abs(
+                Nav_data['posture']['yaw'] - desired_heading) < 3 * math.pi / 2:
+            Ctrl_data['desired_heading'] = desired_heading + math.pi
+        else:
+            Ctrl_data['desired_heading'] = desired_heading
+        if Ctrl_data['desired_heading'] > 2 * math.pi:
+            Ctrl_data['desired_heading'] -= (2 * math.pi)
+
+        Ctrl_data['rudder'] = limit_1000(int(self.__control_heading(Ctrl_data['desired_heading'])))
+
+        heading_distance = self.point_current.distance2(self.point_desired) * math.cos(
+            desired_heading - Nav_data['posture']['yaw'])
+        Ctrl_data['thrust'] = limit_1000(int(self.thrust_pid.calculate_pid(heading_distance, Pid['position_p'],
+                                                                           Pid['position_i'], Pid['position_d'])))
 
     def __control_heading(self, desired_heading):
         heading_err = desired_heading - Nav_data['posture']['yaw']
