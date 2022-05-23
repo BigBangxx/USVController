@@ -40,10 +40,14 @@ class Control:
         elif Ctrl_data['mode'] == 'gcs':
             self.__gcs()
         elif Ctrl_data['mode'] == 'heading':
+            Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
             self.__heading()
         elif Ctrl_data['mode'] == 'speed':
+            Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
             self.__speed()
         elif Ctrl_data['mode'] == 'heading_speed':
+            Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
+            Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
             self.__heading_speed()
         elif Ctrl_data['mode'] == 'waypoints':
             self.__waypoint()
@@ -112,8 +116,8 @@ class Control:
             err = (Rcu_data['channel1'] - 1024) / 672 / 1 - Nav_data['gyroscope']['Z']
         else:
             err = 0 - Nav_data['gyroscope']['Z']
-        Ctrl_data['rudder'] = limit_1000(
-            int(self.rudder_pid.calculate_pid(err, Pid['heading_p'], Pid['heading_i'], Pid['heading_d'])))
+        Ctrl_data['rudder'] += int(
+            self.rudder_pid.calculate_pid(err, Pid['heading_p'], Pid['heading_i'], Pid['heading_d']))
 
     @staticmethod
     def __gcs():  # 1
@@ -121,46 +125,48 @@ class Control:
         Ctrl_data['thrust'] = limit_1000(int(Gcs_command['desired_thrust']))
 
     def __heading(self):  # 2
-        Ctrl_data['rudder'] = limit_1000(int(self.__control_heading()))
+        Ctrl_data['rudder'] = limit_1000(int(self.__control_heading(Ctrl_data['desired_heading'])))
         Ctrl_data['thrust'] = limit_1000(int(Gcs_command['desired_thrust']))
 
     def __speed(self):  # 3
         Ctrl_data['rudder'] = limit_1000(int(Gcs_command['desired_rudder']))
-        Ctrl_data['thrust'] = limit_1000(int(self.__control_speed()))
+        Ctrl_data['thrust'] = limit_1000(int(self.__control_speed(Ctrl_data['desired_speed'])))
 
     def __heading_speed(self):  # 4
-        Ctrl_data['rudder'] = limit_1000(int(self.__control_heading()))
-        Ctrl_data['thrust'] = limit_1000(int(self.__control_speed()))
+        Ctrl_data['rudder'] = limit_1000(int(self.__control_heading(Ctrl_data['desired_heading'])))
+        Ctrl_data['thrust'] = limit_1000(int(self.__control_speed(Ctrl_data['desired_speed'])))
 
     def __waypoint(self):  # 5
         if self.point_current.distance2(self.point_desired) > settings.gcs_waypoint_err:
-            Gcs_command['desired_heading'] = self.point_current.azimuth2(self.point_desired)
+            Ctrl_data['desired_heading'] = self.point_current.azimuth2(self.point_desired)
             self.__heading()
         else:
             self.__lock()
 
     def __waypoint_speed(self):  # 6
         if self.point_current.distance2(self.point_desired) > settings.gcs_waypoint_err:
-            Gcs_command['desired_heading'] = self.point_current.azimuth2(self.point_desired)
+            Ctrl_data['desired_heading'] = self.point_current.azimuth2(self.point_desired)
+            Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
             self.__heading_speed()
         else:
             self.__lock()
 
     def __trajectory_point(self):  # 7
+        Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
         # 航向
         desired_heading = self.point_current.azimuth2(self.point_desired)
-        if abs(Gcs_command['desired_heading'] - desired_heading) > math.pi / 2:
-            Gcs_command['desired_heading'] = desired_heading + math.pi
+        if abs(Ctrl_data['desired_heading'] - desired_heading) > math.pi / 2:
+            Ctrl_data['desired_heading'] = desired_heading + math.pi
         else:
-            Gcs_command['desired_heading'] = desired_heading
-        if Gcs_command['desired_heading'] > 2 * math.pi:
-            Gcs_command['desired_heading'] -= (2 * math.pi)
+            Ctrl_data['desired_heading'] = desired_heading
+        if Ctrl_data['desired_heading'] > 2 * math.pi:
+            Ctrl_data['desired_heading'] -= (2 * math.pi)
 
         # 航速
         heading_distance = self.point_current.distance2(self.point_desired) * math.cos(
             desired_heading - Nav_data['posture']['yaw'])
-        Gcs_command['desired_speed'] += self.position_pid.calculate_pid(heading_distance, Pid['position_p'],
-                                                                        Pid['position_i'], Pid['position_d'])
+        Ctrl_data['desired_speed'] += self.position_pid.calculate_pid(heading_distance, Pid['position_p'],
+                                                                      Pid['position_i'], Pid['position_d'])
 
         self.__heading_speed()
 
@@ -181,24 +187,24 @@ class Control:
                 point_next.latitude = way_point[0]
                 point_next.longitude = way_point[1]
             if self.waypoint_index == 0:
-                Gcs_command['desired_heading'] = self.point_current.azimuth2(point_next)
+                Ctrl_data['desired_heading'] = self.point_current.azimuth2(point_next)
             else:
-                Gcs_command['desired_heading'] = calculate_los_angle(self.point_previous, self.point_current,
-                                                                     point_next, settings.los_distance)
+                Ctrl_data['desired_heading'] = calculate_los_angle(self.point_previous, self.point_current,
+                                                                   point_next, settings.los_distance)
         self.last_setting = Gcs_command['setting']
 
         self.__heading()
 
-    def __control_heading(self):
-        heading_err = Gcs_command['desired_heading'] - Nav_data['posture']['yaw']
+    def __control_heading(self, desired_heading):
+        heading_err = desired_heading - Nav_data['posture']['yaw']
         if heading_err < -math.pi:
             heading_err += 2 * math.pi
         if heading_err > math.pi:
             heading_err -= 2 * math.pi
         return self.rudder_pid.calculate_pid(heading_err, Pid['heading_p'], Pid['heading_i'], Pid['heading_d'])
 
-    def __control_speed(self):
-        speed_err = Gcs_command['desired_speed'] - Nav_data['velocity']['speed']
+    def __control_speed(self, desired_speed):
+        speed_err = desired_speed - Nav_data['velocity']['speed']
         return self.thrust_pid.calculate_pid(speed_err, Pid['speed_p'], Pid['speed_i'], Pid['speed_d'])
 
 
