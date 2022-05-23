@@ -153,6 +153,7 @@ class Control:
 
     def __trajectory_point(self):  # 7
         Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
+        Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
         # 航向
         desired_heading = self.point_current.azimuth2(self.point_desired)
         if abs(Ctrl_data['desired_heading'] - desired_heading) > math.pi / 2:
