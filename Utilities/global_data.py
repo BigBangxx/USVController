@@ -14,7 +14,8 @@ Pid = {'id': settings.usv_id, 'heading_p': settings.heading_p, 'heading_i': sett
        'position_d': settings.position_d}
 
 # Control parameter
-Ctrl_data = {'status': 0, 'mode': 'lock', 'thrust': 0, 'rudder': 0, 'ignition': 0}
+Ctrl_data = {'status': 0, 'mode': 'lock', 'thrust': 0, 'rudder': 0, 'ignition': 0, 'desired_heading': 0.0,
+             'desired_speed': 0.0}
 
 # Remoter Control Unit
 Rcu_data = {'channel1': 1024, 'channel2': 0, 'channel3': 1024, 'channel4': 0, 'channel5': 1024, 'channel6': 0,
