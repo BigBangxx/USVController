@@ -9,6 +9,7 @@ class RemoteControlUnit:
 
     def __init__(self):
         self.send_data = Rcu_data.copy()
+        self.last_sent_data = self.send_data.copy()
         self.sbus = serial.Serial(settings.sbus_com, 100000, serial.EIGHTBITS, serial.PARITY_EVEN, serial.STOPBITS_TWO,
                                   0, False, False, 0)
         self.buffer = bytearray()
@@ -26,6 +27,15 @@ class RemoteControlUnit:
                     1024 + (limit_1000(Ctrl_data['rudder'] + Ctrl_data['thrust']) * 0.672))  # 左电机
                 self.send_data['channel1'] = int(
                     1024 + (limit_1000(Ctrl_data['thrust'] - Ctrl_data['rudder']) * 0.672))  # 右电机
+                self.send_data['channel3'] = self.__limit_change_rate(self.send_data['channel3'],
+                                                                      self.last_sent_data['channel3'],
+                                                                      settings.limit_sbus_change_rate,
+                                                                      settings.ctrl_cycle_time)
+                self.send_data['channel1'] = self.__limit_change_rate(self.send_data['channel1'],
+                                                                      self.last_sent_data['channel1'],
+                                                                      settings.limit_sbus_change_rate,
+                                                                      settings.ctrl_cycle_time)
+                self.last_sent_data = self.send_data.copy()
             else:
                 self.send_data['channel3'] = int(1024 + (Ctrl_data['thrust'] * 0.672))  # 推进器
                 self.send_data['channel1'] = int(1024 + (Ctrl_data['rudder'] * 0.672))  # 舵
@@ -108,3 +118,12 @@ class RemoteControlUnit:
             for now in list(Rcu_data.keys()):
                 if now == last:
                     Rcu_last_data[last] = Rcu_data[now]
+
+    @staticmethod
+    def __limit_change_rate(data, last_data, limit_change_rate, control_time):
+        if (data - last_data) > limit_change_rate / 1000 * 672 * control_time:
+            return int(last_data + limit_change_rate / 1000 * 672 * control_time)
+        elif (data - last_data) < -limit_change_rate / 1000 * 672 * control_time:
+            return int(last_data - limit_change_rate / 1000 * 672 * control_time)
+        else:
+            return int(data)

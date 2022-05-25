@@ -24,9 +24,11 @@ class Settings:
             config.set('usv', 'position_p', '0')
             config.set('usv', 'position_i', '0')
             config.set('usv', 'position_d', '0')
+            config.set('usv', 'ctrl_cycle_time', '0.01')
 
             config.add_section('rcu')
             config.set('rcu', 'sbus_com', 'COM50')
+            config.set('rcu', 'limit_sbus_change_rate', '1000')
 
             config.add_section('navigation')
             config.set('navigation', 'navigation_type', 'airsim')
@@ -62,8 +64,10 @@ class Settings:
             self.position_p = eval(config.get('usv', 'position_p'))
             self.position_i = eval(config.get('usv', 'position_i'))
             self.position_d = eval(config.get('usv', 'position_d'))
+            self.ctrl_cycle_time = eval(config.get('usv', 'ctrl_cycle_time'))
 
             self.sbus_com = config.get('rcu', 'sbus_com')
+            self.limit_sbus_change_rate = eval(config.get('rcu', 'limit_sbus_change_rate'))
 
             self.navigation_com = config.get('navigation', 'navigation_com')
             self.navigation_type = config.get('navigation', 'navigation_type')
