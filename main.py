@@ -7,7 +7,7 @@ from Sensors.navigation import Navigation
 from GNC.control import Control
 from Utilities.log import Log
 
-from Utilities.global_data import Rcu_data, Rcu_last_data, Gcs_command, Gcs_heart_beat, Nav_data, Ctrl_data, Pid
+from Utilities.global_data import Rcu_data, Gcs_command, Gcs_heart_beat, Nav_data, Ctrl_data, Pid
 
 
 class UsvControl:
