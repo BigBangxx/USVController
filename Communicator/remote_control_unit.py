@@ -44,6 +44,8 @@ class RemoteControlUnit:
 
     def __decode(self):
         """读取数据并解包数据"""
+        # SBUS、WBUS 协议 0x0f开头，0x00结尾
+        # SBUS2 协议 0x0f开头，0x04，0x14，0x24，0x34结尾
         self.buffer += self.sbus.read(self.sbus.in_waiting)
 
         while len(self.buffer) >= 25:
@@ -51,8 +53,8 @@ class RemoteControlUnit:
                 del self.buffer[0]
                 continue
 
-            if self.buffer[24] != 0x04 and self.buffer[24] != 0x14 and self.buffer[24] != 0x24 and self.buffer[
-                24] != 0x34:
+            if self.buffer[24] != 0x00 and self.buffer[24] != 0x04 and self.buffer[24] != 0x14 and self.buffer[
+                24] != 0x24 and self.buffer[24] != 0x34:
                 del self.buffer[0]
                 Rcu_data['error'] += 1
                 continue
