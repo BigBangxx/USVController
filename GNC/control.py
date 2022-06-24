@@ -156,10 +156,11 @@ class Control:
         Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
         # 航向
         desired_heading = self.point_current.azimuth2(self.point_desired)
-        if abs(Ctrl_data['desired_heading'] - desired_heading) > math.pi / 2:
-            Ctrl_data['desired_heading'] = desired_heading + math.pi
-        else:
+        if (abs(Ctrl_data['desired_heading'] - desired_heading) < math.pi / 2) or (3 * math.pi / 2 < abs(
+                Ctrl_data['desired_heading'] - desired_heading) < 2 * math.pi):
             Ctrl_data['desired_heading'] = desired_heading
+        else:
+            Ctrl_data['desired_heading'] = desired_heading + math.pi
         if Ctrl_data['desired_heading'] > 2 * math.pi:
             Ctrl_data['desired_heading'] -= (2 * math.pi)
 
