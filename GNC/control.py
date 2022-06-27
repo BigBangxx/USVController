@@ -152,23 +152,52 @@ class Control:
             self.__point_keeping()
 
     def __trajectory_point(self):  # 7
-        Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
-        Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
-        # 航向
-        desired_heading = self.point_current.azimuth2(self.point_desired)
-        if (abs(Ctrl_data['desired_heading'] - desired_heading) < math.pi / 2) or (3 * math.pi / 2 < abs(
-                Ctrl_data['desired_heading'] - desired_heading) < 2 * math.pi):
-            Ctrl_data['desired_heading'] = desired_heading
-        else:
-            Ctrl_data['desired_heading'] = desired_heading + math.pi
-        if Ctrl_data['desired_heading'] > 2 * math.pi:
-            Ctrl_data['desired_heading'] -= (2 * math.pi)
+        # Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
+        # Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
+        # # 航向
+        # desired_heading = self.point_current.azimuth2(self.point_desired)
+        # if (abs(Ctrl_data['desired_heading'] - desired_heading) < math.pi / 2) or (3 * math.pi / 2 < abs(
+        #         Ctrl_data['desired_heading'] - desired_heading) < 2 * math.pi):
+        #     Ctrl_data['desired_heading'] = desired_heading
+        # else:
+        #     Ctrl_data['desired_heading'] = desired_heading + math.pi
+        # if Ctrl_data['desired_heading'] > 2 * math.pi:
+        #     Ctrl_data['desired_heading'] -= (2 * math.pi)
+        #
+        # # 航速
+        # heading_distance = self.point_current.distance2(self.point_desired) * math.cos(
+        #     desired_heading - Nav_data['posture']['yaw'])
+        # Ctrl_data['desired_speed'] += self.position_pid.calculate_pid(heading_distance, Pid['position_p'],
+        #                                                               Pid['position_i'], Pid['position_d'])
+        speed = Gcs_command['desired_speed']
+        yaw = Gcs_command['desired_heading']
+        speedX = speed * math.cos(yaw)
+        speedY = speed * math.sin(yaw)
 
-        # 航速
-        heading_distance = self.point_current.distance2(self.point_desired) * math.cos(
-            desired_heading - Nav_data['posture']['yaw'])
-        Ctrl_data['desired_speed'] += self.position_pid.calculate_pid(heading_distance, Pid['position_p'],
-                                                                      Pid['position_i'], Pid['position_d'])
+        distance = self.point_current.distance2(self.point_desired)
+        angle = self.point_current.azimuth2(self.point_desired)
+        distanceX = distance * math.cos(angle)
+        distanceY = distance * math.sin(angle)
+
+        speedX += self.position_pid.calculate_pid(distanceX, Pid['position_p'], 0, 0)
+        speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], 0, 0)
+
+        speed = math.hypot(speedX, speedY)
+        scale_rate = 1
+
+        if speed < 0:
+            speed = 0
+        elif speed > 5:
+            scale_rate = 5 / speed
+            speed = 5
+        speed *= scale_rate
+
+        yaw = math.atan2(speedY, speedX)
+        if yaw < 0:
+            yaw += math.pi * 2
+
+        Ctrl_data['desired_heading'] = yaw
+        Ctrl_data['desired_speed'] = speed
 
         self.__heading_speed()
 
