@@ -35,9 +35,9 @@ class GeoCoordinate:
             math.sin(self.latitude) * math.cos(ratio) + math.cos(self.latitude) * math.sin(ratio) * math.cos(azimuth))
         longitude = self.longitude + math.atan2(math.sin(azimuth) * math.sin(ratio) * math.cos(self.latitude),
                                                 math.cos(ratio) - math.sin(self.latitude) * math.sin(latitude))
-        if longitude > 180:
-            longitude -= 360
-        elif longitude < -180:
-            longitude += 360
+        if longitude > math.pi:
+            longitude -= math.pi * 2
+        elif longitude < -math.pi:
+            longitude += math.pi * 2
 
         return GeoCoordinate(latitude, longitude)
