@@ -201,6 +201,9 @@ class Navigation:
         while True:
             packet_id, packet_data, errors = Anpp.decode(self.buffer, Nav_data["errors"])
 
+            if packet_id is None:
+                break
+
             packet_data_length = len(packet_data)
 
             if (packet_data[0] | packet_data[1] << 8) != settings.usv_id:  # 数据过滤
