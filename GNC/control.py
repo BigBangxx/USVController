@@ -17,6 +17,7 @@ class Control:
         self.rudder_pid = PID()
         self.thrust_pid = PID()
         self.position_pid = PID()
+        self.speed_max = 5
 
     def c_run(self):
         self.__update()
@@ -183,14 +184,9 @@ class Control:
         speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], 0, 0)
 
         speed = math.hypot(speedX, speedY)
-        scale_rate = 1
 
-        if speed < 0:
-            speed = 0
-        elif speed > 5:
-            scale_rate = 5 / speed
-            speed = 5
-        speed *= scale_rate
+        if speed > self.speed_max:
+            speed = self.speed_max
 
         yaw = math.atan2(speedY, speedX)
         if yaw < 0:
