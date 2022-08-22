@@ -13,6 +13,7 @@ class Control:
         self.point_current = Point(0.0, 0.0)
         self.point_desired = Point(0.0, 0.0)
         self.last_setting = 0
+        self.last_mode = 'lock'
         self.waypoint_index = 0
         self.rudder_pid = PID()
         self.thrust_pid = PID()
@@ -30,14 +31,21 @@ class Control:
         self.point_desired = Point(Gcs_command['desired_latitude'], Gcs_command['desired_longitude'])
         if Gcs_command['setting'] != 8:
             self.last_setting = Gcs_command['setting']
+        if self.last_mode != 'point':
+            self.last_setting = Ctrl_data['mode']
 
     def __control(self):
         if Ctrl_data['mode'] == 'lock':
             self.__lock()
         elif Ctrl_data['mode'] == 'manual':
             self.__manual()
-        elif Ctrl_data['mode'] == 'line':
-            self.__line()
+        elif Ctrl_data['mode'] == 'point':
+            if self.last_mode != 'point': # 记录当前位置
+                Gcs_command['desired_latitude'] = Nav_data['location']['latitude']
+                Gcs_command['desired_longitude'] = Nav_data['location']['longitude']
+                self.point_desired = Point(Gcs_command['desired_latitude'], Gcs_command['desired_longitude'])
+            self.__point_keeping()
+            self.last_mode = 'point'
         elif Ctrl_data['mode'] == 'gcs':
             self.__gcs()
         elif Ctrl_data['mode'] == 'heading':
@@ -93,7 +101,7 @@ class Control:
                 if Rcu_data['channel5'] > 1360:
                     Ctrl_data['mode'] = 'manual'
                 elif Rcu_data['channel5'] < 688:
-                    Ctrl_data['mode'] = 'line'
+                    Ctrl_data['mode'] = 'point'
                 else:
                     Ctrl_data['mode'] = 'lock'
         else:
@@ -109,16 +117,6 @@ class Control:
     def __manual():
         Ctrl_data['rudder'] = limit_1000(int(1.4881 * (Rcu_data['channel1'] - 1024)))
         Ctrl_data['thrust'] = limit_1000(int(-1.4881 * (Rcu_data['channel3'] - 1024)))
-
-    def __line(self):
-        Ctrl_data['thrust'] = limit_1000(int(-1.4881 * (Rcu_data['channel3'] - 1024)))
-
-        if abs(Rcu_data['channel1'] - 1024) > 10:
-            err = (Rcu_data['channel1'] - 1024) / 672 / 1 - Nav_data['gyroscope']['Z']
-        else:
-            err = 0 - Nav_data['gyroscope']['Z']
-        Ctrl_data['rudder'] += int(
-            self.rudder_pid.calculate_pid(err, Pid['heading_p'], Pid['heading_i'], Pid['heading_d']))
 
     @staticmethod
     def __gcs():  # 1
