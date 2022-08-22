@@ -236,8 +236,11 @@ class Control:
 
         heading_distance = self.point_current.distance2(self.point_desired) * math.cos(
             desired_heading - Nav_data['posture']['yaw'])
-        Ctrl_data['thrust'] = limit_1000(int(self.thrust_pid.calculate_pid(heading_distance, Pid['position_p'],
-                                                                           Pid['position_i'], Pid['position_d'])))
+        if heading_distance > 1.5:
+            Ctrl_data['thrust'] = limit_1000(int(self.thrust_pid.calculate_pid(heading_distance, Pid['position_p'],
+                                                                               Pid['position_i'], Pid['position_d'])))
+        else:
+            Ctrl_data['thrust'] = 0.0
 
     def __control_heading(self, desired_heading):
         heading_err = desired_heading - Nav_data['posture']['yaw']
