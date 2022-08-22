@@ -40,7 +40,7 @@ class Control:
         elif Ctrl_data['mode'] == 'manual':
             self.__manual()
         elif Ctrl_data['mode'] == 'point':
-            if self.last_mode != 'point': # 记录当前位置
+            if self.last_mode != 'point':  # 记录当前位置
                 Gcs_command['desired_latitude'] = Nav_data['location']['latitude']
                 Gcs_command['desired_longitude'] = Nav_data['location']['longitude']
                 self.point_desired = Point(Gcs_command['desired_latitude'], Gcs_command['desired_longitude'])
@@ -142,13 +142,14 @@ class Control:
         else:
             self.__point_keeping()
 
-    def __waypoint_speed(self):  # 6
+    def __waypoint_speed(self):  # 6 路点航速航向
         if self.point_current.distance2(self.point_desired) > settings.gcs_waypoint_err:
             Ctrl_data['desired_heading'] = self.point_current.azimuth2(self.point_desired)
             Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
             self.__heading_speed()
         else:
-            self.__point_keeping()
+            self.__heading()
+            Ctrl_data['thrust'] = 0.0
 
     def __trajectory_point(self):  # 7
         # Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
