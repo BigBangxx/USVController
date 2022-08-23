@@ -148,8 +148,9 @@ class Control:
             Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
             self.__heading_speed()
         else:
+            Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
             self.__heading()
-            Ctrl_data['thrust'] = 0.0
+            Ctrl_data['thrust'] = 0
 
     def __trajectory_point(self):  # 7
         # Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
@@ -235,11 +236,11 @@ class Control:
 
         heading_distance = self.point_current.distance2(self.point_desired) * math.cos(
             desired_heading - Nav_data['posture']['yaw'])
-        if heading_distance > 1.5:
+        if abs(heading_distance) > 1.5:
             Ctrl_data['thrust'] = limit_1000(int(self.thrust_pid.calculate_pid(heading_distance, Pid['position_p'],
                                                                                Pid['position_i'], Pid['position_d'])))
         else:
-            Ctrl_data['thrust'] = 0.0
+            Ctrl_data['thrust'] = 0
 
     def __control_heading(self, desired_heading):
         heading_err = desired_heading - Nav_data['posture']['yaw']
