@@ -19,6 +19,7 @@ class Control:
         self.thrust_pid = PID()
         self.position_pid = PID()
         self.speed_max = 5
+        self.lastInRing = False
 
     def c_run(self):
         self.__update()
@@ -143,14 +144,21 @@ class Control:
             self.__point_keeping()
 
     def __waypoint_speed(self):  # 6 路点航速航向
-        if self.point_current.distance2(self.point_desired) > settings.gcs_waypoint_err:
-            Ctrl_data['desired_heading'] = self.point_current.azimuth2(self.point_desired)
-            Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
-            self.__heading_speed()
-        else:
-            Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
-            self.__heading()
-            Ctrl_data['thrust'] = 0
+        distance = self.point_current.distance2(self.point_desired)
+        if not self.lastInRing:  # 上次不在外圈内先路点模式进入内圈
+            if distance <= 2:  # 进入内圈,控制航向
+                self.lastInRing = True
+            else:
+                Ctrl_data['desired_heading'] = self.point_current.azimuth2(self.point_desired)
+                Ctrl_data['desired_speed'] = Gcs_command['desired_speed']
+                self.__heading_speed()
+        else:  # 上次在外圈内，控制航向
+            if distance > settings.gcs_waypoint_err:  # 出外圈
+                self.lastInRing = False
+            else:
+                Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
+                self.__heading()
+                Ctrl_data['thrust'] = 0
 
     def __trajectory_point(self):  # 7
         # Ctrl_data['desired_heading'] = Gcs_command['desired_heading']
