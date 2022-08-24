@@ -31,8 +31,8 @@ class Control:
         self.point_desired = Point(Gcs_command['desired_latitude'], Gcs_command['desired_longitude'])
         if Gcs_command['setting'] != 8:
             self.last_setting = Gcs_command['setting']
-        if self.last_mode != 'point':
-            self.last_setting = Ctrl_data['mode']
+        if Ctrl_data['mode'] != 'point':
+            self.last_mode = Ctrl_data['mode']
 
     def __control(self):
         if Ctrl_data['mode'] == 'lock':
