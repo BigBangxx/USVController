@@ -10,7 +10,15 @@
 
 仿真环境测试
 
+​	AirSim
+
 ![image-20220221163002292](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220221163002292.png)
+
+​	UE4
+
+![20220824编队仿真系统测试](https://gitee.com/sttdo/picture/raw/master/img/2022/09/20220824编队仿真系统测试.gif)
+
+![图片1](https://gitee.com/sttdo/picture/raw/master/img/2022/09/图片1.png)
 
 部署测试
 
@@ -20,7 +28,7 @@
 
 ![image-20220226224850116](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220226224850116.png)
 
-​		
+编队视频：https://www.bilibili.com/video/BV1xe411g788
 
 #### 使用说明
 
@@ -28,7 +36,7 @@
 
 遥控器通道三控制前进倒退，通道一控制转向。
 
-**硬件：**航模遥控器、接收机、接收机信号转换模块和串口转USB模块（必须，连接见下图，可联系购买定制板子）、组合导航、数传电台
+**硬件：**航模遥控器、接收机、接收机信号转换模块和串口转USB模块（必须，连接见下图）、组合导航、数传电台
 
 **硬件连接：**所有外设均使用USB连接至控制器。左（主）推进器连接接收机信号转换模块Channel3、右（舵）推进器连接收机信号转换模块Channel1。
 
@@ -40,7 +48,7 @@
 
 **仿真环境**
 
-仿真环境使用Airsim，车模型，代码在Airsim文件夹，相关配置教程请自行百度，navigation_type设置为airsim
+仿真环境使用Airsim，车模型，代码在Airsim文件夹，相关配置教程请自行百度，navigation_type设置为airsim, （已经支持UE4）。
 
 
 
