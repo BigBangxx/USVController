@@ -16,9 +16,10 @@ class Control:
         self.last_mode = 'lock'
         self.waypoint_index = 0
         self.rudder_pid = PID()
+        self.thrust_expert_pid = ExpertPID()
         self.thrust_pid = PID()
         self.position_pid = PID()
-        self.speed_max = 5
+        self.speed_max = 3.5
         self.lastInRing = False
 
     def c_run(self):
@@ -180,25 +181,35 @@ class Control:
         #                                                               Pid['position_i'], Pid['position_d'])
         speed = Gcs_command['desired_speed']
         yaw = Gcs_command['desired_heading']
-        speedX = speed * math.cos(yaw)
-        speedY = speed * math.sin(yaw)
 
-        distance = self.point_current.distance2(self.point_desired)
         angle = self.point_current.azimuth2(self.point_desired)
-        distanceX = distance * math.cos(angle)
-        distanceY = distance * math.sin(angle)
+        d_angle = abs(angle - yaw)
+        if d_angle < math.pi / 2 or 3 * math.pi / 2 < d_angle < 2 * math.pi:  # 目标点在无人艇前方
+            speedX = speed * math.cos(yaw)
+            speedY = speed * math.sin(yaw)
 
-        speedX += self.position_pid.calculate_pid(distanceX, Pid['position_p'], 0, 0)
-        speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], 0, 0)
+            distance = self.point_current.distance2(self.point_desired)
+            distanceX = distance * math.cos(angle)
+            distanceY = distance * math.sin(angle)
 
-        speed = math.hypot(speedX, speedY)
+            speedX += self.position_pid.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'], 0)
+            speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], Pid['position_i'], 0)
 
-        if speed > self.speed_max:
-            speed = self.speed_max
+            speed = math.hypot(speedX, speedY)
 
-        yaw = math.atan2(speedY, speedX)
-        if yaw < 0:
-            yaw += math.pi * 2
+            if speed > self.speed_max:
+                speed = self.speed_max
+
+            yaw = math.atan2(speedY, speedX)
+            if yaw < 0:
+                yaw += math.pi * 2
+
+        else:  # 目标点在无人艇后方
+            speed *= settings.speed_coefficient
+            self.position_pid.data['err_i'] = 0
+            point_next = self.point_desired.at_distance_and_azimuth(999, yaw)
+            yaw = calculate_los_angle(self.point_desired, self.point_current, point_next,
+                                      settings.los_distance_tracking)
 
         Ctrl_data['desired_heading'] = yaw
         Ctrl_data['desired_speed'] = speed
@@ -231,24 +242,25 @@ class Control:
         self.__heading()
 
     def __point_keeping(self):
-        desired_heading = self.point_current.azimuth2(self.point_desired)
-        if math.pi / 2 < abs(Nav_data['posture']['yaw'] - desired_heading) and abs(
-                Nav_data['posture']['yaw'] - desired_heading) < 3 * math.pi / 2:
-            Ctrl_data['desired_heading'] = desired_heading + math.pi
-        else:
-            Ctrl_data['desired_heading'] = desired_heading
-        if Ctrl_data['desired_heading'] > 2 * math.pi:
-            Ctrl_data['desired_heading'] -= (2 * math.pi)
-
-        Ctrl_data['rudder'] = limit_1000(int(self.__control_heading(Ctrl_data['desired_heading'])))
-
-        heading_distance = self.point_current.distance2(self.point_desired) * math.cos(
-            desired_heading - Nav_data['posture']['yaw'])
-        if abs(heading_distance) > 1.5:
-            Ctrl_data['thrust'] = limit_1000(int(self.thrust_pid.calculate_pid(heading_distance, Pid['position_p'],
-                                                                               Pid['position_i'], Pid['position_d'])))
-        else:
-            Ctrl_data['thrust'] = 0
+        # desired_heading = self.point_current.azimuth2(self.point_desired)
+        # if math.pi / 2 < abs(Nav_data['posture']['yaw'] - desired_heading) and abs(
+        #         Nav_data['posture']['yaw'] - desired_heading) < 3 * math.pi / 2:
+        #     Ctrl_data['desired_heading'] = desired_heading + math.pi
+        # else:
+        #     Ctrl_data['desired_heading'] = desired_heading
+        # if Ctrl_data['desired_heading'] > 2 * math.pi:
+        #     Ctrl_data['desired_heading'] -= (2 * math.pi)
+        #
+        # Ctrl_data['rudder'] = limit_1000(int(self.__control_heading(Ctrl_data['desired_heading'])))
+        #
+        # heading_distance = self.point_current.distance2(self.point_desired) * math.cos(
+        #     desired_heading - Nav_data['posture']['yaw'])
+        # if abs(heading_distance) > 1.5:
+        #     Ctrl_data['thrust'] = limit_1000(int(self.thrust_pid.calculate_pid(heading_distance, Pid['position_p'],
+        #                                                                        Pid['position_i'], Pid['position_d'])))
+        # else:
+        #     Ctrl_data['thrust'] = 0
+        self.__lock()
 
     def __control_heading(self, desired_heading):
         heading_err = desired_heading - Nav_data['posture']['yaw']
@@ -260,7 +272,13 @@ class Control:
 
     def __control_speed(self, desired_speed):
         speed_err = desired_speed - Nav_data['velocity']['speed']
-        return self.thrust_pid.calculate_pid(speed_err, Pid['speed_p'], Pid['speed_i'], Pid['speed_d'])
+        if settings.enable_speed_expert_PID:
+            return self.thrust_expert_pid.calculate_expert_pid(speed_err, Pid['speed_p'], Pid['speed_i'],
+                                                               Pid['speed_d'], settings.speed_expert_PID_max,
+                                                               settings.speed_expert_PID_mid,
+                                                               settings.speed_expert_PID_min)
+        else:
+            return self.thrust_pid.calculate_pid(speed_err, Pid['speed_p'], Pid['speed_i'], Pid['speed_d'])
 
 
 def limit_1000(value):
@@ -290,3 +308,34 @@ class PID:
         self.data['last_err'] = err
 
         return err * p + self.data['err_i'] * i + err_d * d
+
+
+class ExpertPID:
+    def __init__(self):
+        self.data = {'last_err': 0.0, 'last_d_err': 0.0, 'last_output': 0.0, 'k1': settings.expert_PID_k1,
+                     'k2': settings.expert_PID_k2}
+
+    def calculate_expert_pid(self, err, p, i, d, max_, mid_, min_):
+        d_err = err - self.data['last_err']
+        output = 0
+        if abs(err) > max_:  # 误差较大输出最大值，快速响应
+            output = err * 1000
+        elif err * d_err > 0 or d_err == 0:  # 误差在朝误差绝对值增大方向变化，或误差为某一常值，未发生变化
+            if abs(err) > mid_:  # 误差较大, 输出较强控制作用
+                output = self.data['last_output'] + self.data['k1'] * p * d_err + i * err + d * (
+                        d_err - self.data['last_d_err'])
+            else:  # 误差不大， 输出一般控制作用
+                output = self.data['last_output'] + p * d_err + i * err + d * (d_err - self.data['last_d_err'])
+        elif (err * d_err < 0 and d_err * self.data['last_d_err'] > 0) or err == 0:  # 误差的绝对值朝减小的方向变化，或者已经达到平衡状态
+            output = self.data['last_output']
+        elif err * d_err < 0 and d_err * self.data['last_d_err'] < 0:  # 误差处于极值状态
+            if abs(err) > mid_:  # 误差较大, 输出较强控制作用
+                output = self.data['last_output'] + self.data['k1'] * p * err
+            else:  # 误差不大， 输出较弱控制作用
+                output = self.data['last_output'] + self.data['k2'] * p * err
+        elif err < min_:
+            output = self.data['last_output'] + p * d_err + i * err
+        self.data['last_err'] = err
+        self.data['last_d_err'] = d_err
+        self.data['last_output'] = output
+        return output

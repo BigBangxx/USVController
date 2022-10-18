@@ -18,10 +18,10 @@ class Settings:
             config.set('usv', 'heading_p', '500')
             config.set('usv', 'heading_i', '0')
             config.set('usv', 'heading_d', '100')
-            config.set('usv', 'speed_p', '0')
-            config.set('usv', 'speed_i', '0')
-            config.set('usv', 'speed_d', '0')
-            config.set('usv', 'position_p', '0')
+            config.set('usv', 'speed_p', '1000')
+            config.set('usv', 'speed_i', '100')
+            config.set('usv', 'speed_d', '300')
+            config.set('usv', 'position_p', '0.3')
             config.set('usv', 'position_i', '0')
             config.set('usv', 'position_d', '0')
             config.set('usv', 'ctrl_cycle_time', '0.01')
@@ -44,6 +44,16 @@ class Settings:
             config.set('gcs', 'server_port', '')
             config.set('gcs', 'gcs_disconnect_time_allow', '3')
             config.set('gcs', 'gcs_waypoint_err', '1')
+
+            config.add_section('formation')
+            config.set('formation', 'enable_speed_expert_PID', '0')
+            config.set('formation', 'speed_expert_PID_max', '1')
+            config.set('formation', 'speed_expert_PID_mid', '0.3')
+            config.set('formation', 'speed_expert_PID_min', '0.1')
+            config.set('formation', 'expert_PID_k1', '2')  # 增强控制系数
+            config.set('formation', 'expert_PID_k2', '0.5')  # 抑制控制系数
+            config.set('formation', 'speed_coefficient', '0.5')  # 增强控制系数
+            config.set('formation', 'los_distance_tracking', '1.5')  # 抑制控制系数
 
             with open('AppData/settings.ini', 'w') as ini:
                 config.write(ini)
@@ -81,6 +91,15 @@ class Settings:
             self.gcs_server_port = eval(config.get('gcs', 'server_port'))
             self.gcs_disconnect_time_allow = eval(config.get('gcs', 'gcs_disconnect_time_allow'))
             self.gcs_waypoint_err = eval(config.get('gcs', 'gcs_waypoint_err'))
+
+            self.enable_speed_expert_PID = eval(config.get('formation', 'enable_speed_expert_PID'))
+            self.speed_expert_PID_max = eval(config.get('formation', 'speed_expert_PID_max'))
+            self.speed_expert_PID_mid = eval(config.get('formation', 'speed_expert_PID_mid'))
+            self.speed_expert_PID_min = eval(config.get('formation', 'speed_expert_PID_min'))
+            self.expert_PID_k1 = eval(config.get('formation', 'expert_PID_k1'))
+            self.expert_PID_k2 = eval(config.get('formation', 'expert_PID_k2'))
+            self.speed_coefficient = eval(config.get('formation', 'speed_coefficient'))
+            self.los_distance_tracking = eval(config.get('formation', 'los_distance_tracking'))
 
     @staticmethod
     def update_pid(hp, hi, hd, sp, si, sd, pp, pi, pd):

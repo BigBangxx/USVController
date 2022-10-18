@@ -14,6 +14,7 @@ class GroundControlStation:
         self.communication_type = settings.gcs_communication_type
         if self.communication_type == 'udp':
             usv_ip_port = ('0.0.0.0', settings.gcs_server_port)
+            usv_ip_port = ('0.0.0.0', 7895)
             self.server_ip_port = (settings.gcs_server_ip, settings.gcs_server_port)
             self.gcs_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.gcs_socket.bind(usv_ip_port)
