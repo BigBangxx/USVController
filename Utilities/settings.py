@@ -50,6 +50,7 @@ class Settings:
             config.set('formation', 'speed_expert_PID_max', '1')
             config.set('formation', 'speed_expert_PID_mid', '0.3')
             config.set('formation', 'speed_expert_PID_min', '0.1')
+            config.set('formation', 'speed_max', '3.5')
             config.set('formation', 'expert_PID_k1', '2')  # 增强控制系数
             config.set('formation', 'expert_PID_k2', '0.5')  # 抑制控制系数
             config.set('formation', 'speed_coefficient', '0.5')  # 增强控制系数
@@ -96,6 +97,7 @@ class Settings:
             self.speed_expert_PID_max = eval(config.get('formation', 'speed_expert_PID_max'))
             self.speed_expert_PID_mid = eval(config.get('formation', 'speed_expert_PID_mid'))
             self.speed_expert_PID_min = eval(config.get('formation', 'speed_expert_PID_min'))
+            self.speed_max = eval(config.get('formation', 'speed_max'))
             self.expert_PID_k1 = eval(config.get('formation', 'expert_PID_k1'))
             self.expert_PID_k2 = eval(config.get('formation', 'expert_PID_k2'))
             self.speed_coefficient = eval(config.get('formation', 'speed_coefficient'))

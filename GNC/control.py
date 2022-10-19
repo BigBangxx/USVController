@@ -19,7 +19,7 @@ class Control:
         self.thrust_expert_pid = ExpertPID()
         self.thrust_pid = PID()
         self.position_pid = PID()
-        self.speed_max = 3.5
+        self.speed_max = settings.speed_max
         self.lastInRing = False
 
     def c_run(self):
