@@ -181,19 +181,20 @@ class Control:
         #                                                               Pid['position_i'], Pid['position_d'])
         speed = Gcs_command['desired_speed']
         yaw = Gcs_command['desired_heading']
-
-        angle = self.point_current.azimuth2(self.point_desired)
-        d_angle = abs(angle - yaw)
-        if d_angle < math.pi / 2 or 3 * math.pi / 2 < d_angle < 2 * math.pi:  # 目标点在无人艇前方
+        # ############################################################################ 纯速度矢量
+        if settings.formation_type == 0:
             speedX = speed * math.cos(yaw)
             speedY = speed * math.sin(yaw)
 
+            angle = self.point_current.azimuth2(self.point_desired)
             distance = self.point_current.distance2(self.point_desired)
             distanceX = distance * math.cos(angle)
             distanceY = distance * math.sin(angle)
 
-            speedX += self.position_pid.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'], 0)
-            speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], Pid['position_i'], 0)
+            speedX += self.position_pid.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'],
+                                                      Pid['position_d'])
+            speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], Pid['position_i'],
+                                                      Pid['position_d'])
 
             speed = math.hypot(speedX, speedY)
 
@@ -203,13 +204,38 @@ class Control:
             yaw = math.atan2(speedY, speedX)
             if yaw < 0:
                 yaw += math.pi * 2
+        # ############################################################################ 制导加速度矢量
+        if settings.formation_type == 1:
+            angle = self.point_current.azimuth2(self.point_desired)
+            d_angle = abs(angle - yaw)
+            if d_angle < math.pi / 2 or 3 * math.pi / 2 < d_angle < 2 * math.pi:  # 目标点在无人艇前方
+                speedX = speed * math.cos(yaw)
+                speedY = speed * math.sin(yaw)
 
-        else:  # 目标点在无人艇后方
-            speed *= settings.speed_coefficient
-            self.position_pid.data['err_i'] = 0
-            point_next = self.point_desired.at_distance_and_azimuth(999, yaw)
-            yaw = calculate_los_angle(self.point_desired, self.point_current, point_next,
-                                      settings.los_distance_tracking)
+                distance = self.point_current.distance2(self.point_desired)
+                distanceX = distance * math.cos(angle)
+                distanceY = distance * math.sin(angle)
+
+                speedX += self.position_pid.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'],
+                                                          Pid['position_d'])
+                speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], Pid['position_i'],
+                                                          Pid['position_d'])
+    
+                speed = math.hypot(speedX, speedY)
+
+                if speed > self.speed_max:
+                    speed = self.speed_max
+
+                yaw = math.atan2(speedY, speedX)
+                if yaw < 0:
+                    yaw += math.pi * 2
+
+            else:  # 目标点在无人艇后方
+                speed *= settings.speed_coefficient
+                self.position_pid.data['err_i'] = 0
+                point_next = self.point_desired.at_distance_and_azimuth(999, yaw)
+                yaw = calculate_los_angle(self.point_desired, self.point_current, point_next,
+                                          settings.los_distance_tracking)
 
         Ctrl_data['desired_heading'] = yaw
         Ctrl_data['desired_speed'] = speed

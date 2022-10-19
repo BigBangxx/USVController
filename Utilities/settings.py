@@ -46,13 +46,14 @@ class Settings:
             config.set('gcs', 'gcs_waypoint_err', '1')
 
             config.add_section('formation')
+            config.set('formation', 'formation_type', '0')
             config.set('formation', 'enable_speed_expert_PID', '0')
             config.set('formation', 'speed_expert_PID_max', '1')
             config.set('formation', 'speed_expert_PID_mid', '0.3')
             config.set('formation', 'speed_expert_PID_min', '0.1')
-            config.set('formation', 'speed_max', '3.5')
             config.set('formation', 'expert_PID_k1', '2')  # 增强控制系数
             config.set('formation', 'expert_PID_k2', '0.5')  # 抑制控制系数
+            config.set('formation', 'speed_max', '3.5')
             config.set('formation', 'speed_coefficient', '0.5')  # 增强控制系数
             config.set('formation', 'los_distance_tracking', '1.5')  # 抑制控制系数
 
@@ -93,13 +94,14 @@ class Settings:
             self.gcs_disconnect_time_allow = eval(config.get('gcs', 'gcs_disconnect_time_allow'))
             self.gcs_waypoint_err = eval(config.get('gcs', 'gcs_waypoint_err'))
 
+            self.formation_type = eval(config.get('formation', 'formation_type'))
             self.enable_speed_expert_PID = eval(config.get('formation', 'enable_speed_expert_PID'))
             self.speed_expert_PID_max = eval(config.get('formation', 'speed_expert_PID_max'))
             self.speed_expert_PID_mid = eval(config.get('formation', 'speed_expert_PID_mid'))
             self.speed_expert_PID_min = eval(config.get('formation', 'speed_expert_PID_min'))
-            self.speed_max = eval(config.get('formation', 'speed_max'))
             self.expert_PID_k1 = eval(config.get('formation', 'expert_PID_k1'))
             self.expert_PID_k2 = eval(config.get('formation', 'expert_PID_k2'))
+            self.speed_max = eval(config.get('formation', 'speed_max'))
             self.speed_coefficient = eval(config.get('formation', 'speed_coefficient'))
             self.los_distance_tracking = eval(config.get('formation', 'los_distance_tracking'))
 
