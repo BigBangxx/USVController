@@ -56,8 +56,8 @@ class GroundControlStation:
                 Gcs_heart_beat['buffer_err'] = self.errors
             elif (packet_data[0] | packet_data[1] << 8) != settings.usv_id:  # 数据过滤
                 continue
-            elif packet_id == 1 and packet_data_length == 40:  # Command
-                command = struct.unpack('<Bffddhhb', bytes(packet_data[10:packet_data_length]))
+            elif packet_id == 1 and packet_data_length == 50:  # Command
+                command = struct.unpack('<Bffddhhbhfhh', bytes(packet_data[10:packet_data_length]))
                 Gcs_command['timestamp'] = time.time()
                 Gcs_command['setting'] = command[0]
                 Gcs_command['desired_heading'] = command[1]
@@ -67,6 +67,10 @@ class GroundControlStation:
                 Gcs_command['desired_rudder'] = command[5]
                 Gcs_command['desired_thrust'] = command[6]
                 Gcs_command['ignition'] = command[7]
+                Gcs_command['angle'] = command[8]
+                Gcs_command['distance'] = command[9]
+                Gcs_command['ship_num'] = command[10]
+                Gcs_command['index_sum'] = command[11]
 
             elif packet_id == 2 and packet_data_length == 10:  # 参数请求
                 data_bytes = struct.pack('<Hdfffffffff', settings.usv_id, time.time(), Pid['heading_p'],
@@ -124,7 +128,7 @@ class GroundControlStation:
                     self.gcs_serial.write(send_data)
 
     def __send_status(self):
-        data_bytes = struct.pack('<HdBdddffffffffffffHHffhhb', settings.usv_id, time.time(), Ctrl_data['status'],
+        data_bytes = struct.pack('<HdBdddffffffffffffHHffhhbh', settings.usv_id, time.time(), Ctrl_data['status'],
                                  Nav_data['location']['latitude'], Nav_data['location']['longitude'],
                                  Nav_data['location']['altitude'], Nav_data['posture']['roll'],
                                  Nav_data['posture']['pitch'], Nav_data['posture']['yaw'],
@@ -133,8 +137,8 @@ class GroundControlStation:
                                  Nav_data['gyroscope']['Z'], Nav_data['accelerometer']['X'],
                                  Nav_data['accelerometer']['Y'], Nav_data['accelerometer']['Z'],
                                  Nav_data['system_status'], Nav_data['filter_status'], 0, 0, Ctrl_data['rudder'],
-                                 Ctrl_data['thrust'], Ctrl_data['ignition'])
-        send_data = Anpp.encode(data_bytes, 16)  # 回应包id=16，包长100
+                                 Ctrl_data['thrust'], Ctrl_data['ignition'], Gcs_command['index_sum'])
+        send_data = Anpp.encode(data_bytes, 16)  # 回应包id=16，包长102
         if self.communication_type == 'udp':
             self.gcs_socket.sendto(send_data, self.server_ip_port)
         else:
