@@ -26,6 +26,7 @@ class Control:
         self.__update()
         self.__choose_mode()
         self.__control()
+        Gcs_command['desired_latitude'] = Gcs_command['index_sum'] / Gcs_command['ship_num']
 
     def __update(self):
         self.point_current = Point(Nav_data['location']['latitude'],
@@ -270,6 +271,8 @@ class Control:
             else:
                 Ctrl_data['desired_heading'] = calculate_los_angle(self.point_previous, self.point_current,
                                                                    point_next, settings.los_distance)
+        if self.waypoint_index == len(self.waypoints) - 1:
+            Gcs_command['desired_thrust'] = 0
         self.last_setting = Gcs_command['setting']
 
         self.__heading()
@@ -301,10 +304,9 @@ class Control:
             # 推力控制
             if Gcs_command['index_sum'] / Gcs_command['ship_num'] < self.waypoint_index:  # 还有艇未到达相应路点
                 Gcs_command['desired_thrust'] = 0
-            if Gcs_command['angle'] == 0 and Gcs_command['distance'] == 0:
-                pass
-            elif Gcs_command['index_sum'] % Gcs_command['ship_num'] != 0 and Gcs_command['index_sum'] / Gcs_command[
-                'ship_num'] > self.waypoint_index:  # 有艇到达路点，我还没到
+            # elif Gcs_command['index_sum'] / Gcs_command['ship_num'] > self.waypoint_index:  # 有艇到达路点，我还没到
+            #     pass
+            elif Gcs_command['angle'] == 0 and Gcs_command['distance'] == 0:
                 pass
             else:
                 distance = self.point_current.distance2(self.point_desired)
@@ -320,8 +322,10 @@ class Control:
                                                                                      Pid['position_d'])
                 if Gcs_command['desired_thrust'] > 700:
                     Gcs_command['desired_thrust'] = 700
-                if Gcs_command['desired_thrust'] < 0:
-                    Gcs_command['desired_thrust'] = 0
+                if Gcs_command['desired_thrust'] < 150:
+                    Gcs_command['desired_thrust'] = 150
+        if self.waypoint_index == len(self.waypoints) - 1:
+            Gcs_command['desired_thrust'] = 0
 
         self.last_setting = Gcs_command['setting']
         Gcs_command['index'] = self.waypoint_index
