@@ -83,8 +83,8 @@ class Control:
             Rcu_data['channel5'] - Rcu_last_data['channel5']) > 10
         if rcu_connected or gcs_connected:
             # setting  0：遥控器控制，1：地面站控制，2：航向，3：航速，4：航向+航速，5：路点，6：路点+航速，7：轨点，8：任务(推力手动)
-            if rcu_activity:
-                Gcs_command['setting'] = 0  # 遥控器活跃，遥控器控制
+            # if rcu_activity:
+            #     Gcs_command['setting'] = 0  # 遥控器活跃，遥控器控制
             if gcs_connected and Gcs_command['setting'] != 0:  # 遥控器不活跃，地面站连接，根据地面站设置
                 Ctrl_data['status'] = 2
                 if Gcs_command['setting'] == 1:
