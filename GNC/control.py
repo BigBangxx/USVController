@@ -1,13 +1,14 @@
 import math
 import time
 
+from Communicator.ground_control_station import GroundControlStation
 from Utilities.global_data import *
 from Utilities.geocoordinate import GeoCoordinate as Point
 from GNC.guidance import calculate_los_angle
 
 
 class Control:
-    def __init__(self):
+    def __init__(self, gcs_communicator: GroundControlStation):
         self.waypoints = 0
         self.point_previous = Point(0.0, 0.0)
         self.point_current = Point(0.0, 0.0)
@@ -21,6 +22,7 @@ class Control:
         self.position_pid = PID()
         self.speed_max = settings.speed_max
         self.lastInRing = False
+        self.gcs_communicator = gcs_communicator  # type: GroundControlStation
 
     def c_run(self):
         self.__update()
@@ -298,7 +300,7 @@ class Control:
                 way_point = self.waypoints[self.waypoint_index]
                 point_next.latitude = way_point[0]
                 point_next.longitude = way_point[1]
-                Globals['Send_arrive_waypoint_packet'] = True
+                self.gcs_communicator.send_arrive_packet()
             if self.waypoint_index == 0:
                 Ctrl_data['desired_heading'] = self.point_current.azimuth2(point_next)
             else:
@@ -325,8 +327,8 @@ class Control:
                                                                                      Pid['position_d'])
                 if Gcs_command['desired_thrust'] > 700:
                     Gcs_command['desired_thrust'] = 700
-                if Gcs_command['desired_thrust'] < 150:
-                    Gcs_command['desired_thrust'] = 150
+                if Gcs_command['desired_thrust'] < 110:
+                    Gcs_command['desired_thrust'] = 110
         if self.waypoint_index == len(self.waypoints) - 1:
             Gcs_command['desired_thrust'] = 0
 

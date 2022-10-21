@@ -144,13 +144,21 @@ class GroundControlStation:
             self.gcs_socket.sendto(send_data, self.server_ip_port)
         else:
             self.gcs_serial.write(send_data)
-        if Globals['Send_arrive_waypoint_packet']:
-            data_bytes = struct.pack('<Hd', settings.usv_id, time.time())
-            send_data = Anpp.encode(data_bytes, 20)  # 回应包id=20，包长10
-            if self.communication_type == 'udp':
-                self.gcs_socket.sendto(send_data, self.server_ip_port)
-            else:
-                self.gcs_serial.write(send_data)
-            for _ in range(100):
-                print(1)
-            Globals['Send_arrive_waypoint_packet'] = False
+        # if Globals['Send_arrive_waypoint_packet']:
+        #     data_bytes = struct.pack('<Hd', settings.usv_id, time.time())
+        #     send_data = Anpp.encode(data_bytes, 20)  # 回应包id=20，包长10
+        #     if self.communication_type == 'udp':
+        #         self.gcs_socket.sendto(send_data, self.server_ip_port)
+        #     else:
+        #         self.gcs_serial.write(send_data)
+        #     for _ in range(100):
+        #         print(1)
+        #     Globals['Send_arrive_waypoint_packet'] = False
+
+    def send_arrive_packet(self, ):
+        data_bytes = struct.pack('<Hd', settings.usv_id, time.time())
+        send_data = Anpp.encode(data_bytes, 20)  # 回应包id=20，包长10
+        if self.communication_type == 'udp':
+            self.gcs_socket.sendto(send_data, self.server_ip_port)
+        else:
+            self.gcs_serial.write(send_data)
