@@ -26,7 +26,7 @@ class Control:
         self.__update()
         self.__choose_mode()
         self.__control()
-        Gcs_command['desired_latitude'] = Gcs_command['index_sum'] / Gcs_command['ship_num']
+        Gcs_command['average_index'] = Gcs_command['index_sum'] / Gcs_command['ship_num']
 
     def __update(self):
         self.point_current = Point(Nav_data['location']['latitude'],
