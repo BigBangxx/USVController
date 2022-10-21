@@ -14,25 +14,27 @@ class UsvControl:
     """程序入口"""
 
     def __init__(self):
-        self.futaba = RemoteControlUnit()
+        # self.futaba = RemoteControlUnit()
         self.navigation = Navigation()
         self.gcs = GroundControlStation()
         self.control = Control()
         self.log = Log()
 
     def ms10_run(self):
-        timer_10 = threading.Timer(0.01, self.ms10_run, )
-        timer_10.start()
-        self.futaba.rcu_run()
+        # timer_10 = threading.Timer(0.01, self.ms10_run, )
+        # timer_10.start()
+        # self.futaba.rcu_run()
         self.navigation.n_run()
         self.gcs.g_run()
         self.control.c_run()
         self.log.write_log()
+        timer_10 = threading.Timer(0.01, self.ms10_run, )
+        timer_10.start()
 
     def ms1000_run(self):
         timer_1000 = threading.Timer(1, self.ms1000_run, )
         timer_1000.start()
-        os.system("clear")
+        # os.system("clear")
         print(Rcu_data)
         print(Nav_data)
         print(Ctrl_data)

@@ -31,8 +31,11 @@ class Control:
         self.point_current = Point(Nav_data['location']['latitude'],
                                    Nav_data['location']['longitude'])
         self.point_desired = Point(Gcs_command['desired_latitude'], Gcs_command['desired_longitude'])
-        if Gcs_command['setting'] != 8:
+        if Gcs_command['setting'] != 8 and Gcs_command['setting'] != 9:
             self.last_setting = Gcs_command['setting']
+        if Gcs_command['setting'] != 9:
+            Gcs_command['index_sum'] = 0
+            Gcs_command['index'] = 0
         if Ctrl_data['mode'] != 'point':
             self.last_mode = Ctrl_data['mode']
 
@@ -68,6 +71,8 @@ class Control:
             self.__trajectory_point()
         elif Ctrl_data['mode'] == 'mission':
             self.__mission()
+        elif Ctrl_data['mode'] == 'formation_mission':
+            self.__formation_mission()
 
     @staticmethod
     def __choose_mode():
@@ -98,6 +103,8 @@ class Control:
                     Ctrl_data['mode'] = 'trajectory_point'
                 elif Gcs_command['setting'] == 8:
                     Ctrl_data['mode'] = 'mission'
+                elif Gcs_command['setting'] == 9:
+                    Ctrl_data['mode'] = 'formation_mission'
             else:  # 遥控器连接，地面站未连接或遥控器活跃，遥控器控制
                 Ctrl_data['status'] = 1
                 if Rcu_data['channel5'] > 1360:
@@ -220,7 +227,7 @@ class Control:
                                                           Pid['position_d'])
                 speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], Pid['position_i'],
                                                           Pid['position_d'])
-    
+
                 speed = math.hypot(speedX, speedY)
 
                 if speed > self.speed_max:
@@ -264,6 +271,59 @@ class Control:
                 Ctrl_data['desired_heading'] = calculate_los_angle(self.point_previous, self.point_current,
                                                                    point_next, settings.los_distance)
         self.last_setting = Gcs_command['setting']
+
+        self.__heading()
+
+    def __formation_mission(self):  # 9
+        if self.last_setting != 9:
+            self.waypoints = mission.read()
+            self.waypoints = generate_follow_path(self.waypoints, math.radians(Gcs_command['angle']),
+                                                  Gcs_command['distance'])
+            self.waypoint_index = 0
+        if len(self.waypoints) != 0:
+            way_point = self.waypoints[self.waypoint_index]
+            point_next = Point(way_point[0], way_point[1])
+            distance = self.point_current.distance2(point_next)
+            # 根据容差确定是否要执行下一个点
+            if distance < way_point[2] and self.waypoint_index < len(self.waypoints) - 1:
+                self.point_previous.latitude = way_point[0]
+                self.point_previous.longitude = way_point[1]
+                self.waypoint_index += 1
+                way_point = self.waypoints[self.waypoint_index]
+                point_next.latitude = way_point[0]
+                point_next.longitude = way_point[1]
+                Globals['Send_arrive_waypoint_packet'] = True
+            if self.waypoint_index == 0:
+                Ctrl_data['desired_heading'] = self.point_current.azimuth2(point_next)
+            else:
+                Ctrl_data['desired_heading'] = calculate_los_angle(self.point_previous, self.point_current,
+                                                                   point_next, settings.los_distance)
+            # 推力控制
+            if Gcs_command['index_sum'] / Gcs_command['ship_num'] < self.waypoint_index:  # 还有艇未到达相应路点
+                Gcs_command['desired_thrust'] = 0
+            elif Gcs_command['angle'] == 0 and Gcs_command['distance'] == 0:
+                pass
+            elif Gcs_command['index_sum'] % Gcs_command['ship_num'] != 0: # 有艇到达路点，我还没到
+                pass
+            else:
+                distance = self.point_current.distance2(self.point_desired)
+                angle = self.point_current.azimuth2(self.point_desired)
+                d_angle = abs(angle - Gcs_command['desired_heading'])
+                if d_angle < math.pi / 2 or 3 * math.pi / 2 < d_angle < 2 * math.pi:  # 目标点在无人艇前方
+                    Gcs_command['desired_thrust'] += self.position_pid.calculate_pid(distance, Pid['position_p'],
+                                                                                     Pid['position_i'],
+                                                                                     Pid['position_d'])
+                else:
+                    Gcs_command['desired_thrust'] -= self.position_pid.calculate_pid(distance, Pid['position_p'],
+                                                                                     Pid['position_i'],
+                                                                                     Pid['position_d'])
+                if Gcs_command['desired_thrust'] > 700:
+                    Gcs_command['desired_thrust'] = 700
+                if Gcs_command['desired_thrust'] < 0:
+                    Gcs_command['desired_thrust'] = 0
+
+        self.last_setting = Gcs_command['setting']
+        Gcs_command['index'] = self.waypoint_index
 
         self.__heading()
 
@@ -313,6 +373,63 @@ def limit_1000(value):
     if value < -1000:
         value = -1000
     return value
+
+
+def generate_follow_path(coordinate, angle, distance):
+    len_ = len(coordinate)
+    if len_ == 0 or len_ == 1 or (angle == 0 and distance == 0):
+        return coordinate
+    point_first = Point(coordinate[0][0], coordinate[0][1])
+    point_last = Point(coordinate[-1][0], coordinate[-1][1])
+    result = []
+    tolerance = coordinate[0][2]
+    for i in range(len_):
+        if i == 0:
+            point_second = Point(coordinate[1][0], coordinate[1][1])
+            north_angle = point_first.azimuth2(point_second)  # 第一二个点的弧度
+            follow_point = point_first.at_distance_and_azimuth(distance, north_angle + angle)
+            waypoint = (follow_point.latitude, follow_point.longitude, tolerance)
+            result.append(waypoint)
+            continue
+        if i == len_ - 1:
+            point_last_pre = Point(coordinate[-2][0], coordinate[-2][1])
+            north_angle = point_last_pre.azimuth2(point_last)  # 倒一二个点的弧度
+            follow_point = point_last.at_distance_and_azimuth(distance, north_angle + angle)
+            waypoint = (follow_point.latitude, follow_point.longitude, tolerance)
+            result.append(waypoint)
+            break
+        point = Point(coordinate[i][0], coordinate[i][1])
+        point_pre = Point(coordinate[i - 1][0], coordinate[i - 1][1])
+        point_next = Point(coordinate[i + 1][0], coordinate[i + 1][1])
+        north_angle1 = point_pre.azimuth2(point)
+        north_angle2 = point.azimuth2(point_next)
+
+        point1 = point_pre.at_distance_and_azimuth(distance, north_angle1 + angle)
+        point2 = point.at_distance_and_azimuth(distance, north_angle1 + angle)
+        point3 = point.at_distance_and_azimuth(distance, north_angle2 + angle)
+        point4 = point_next.at_distance_and_azimuth(distance, north_angle2 + angle)
+
+        a1 = point1.latitude - point2.latitude
+        b1 = point2.longitude - point1.longitude
+        c1 = point1.longitude * point2.latitude - point2.longitude * point1.latitude
+
+        a2 = point3.latitude - point4.latitude
+        b2 = point4.longitude - point3.longitude
+        c2 = point3.longitude * point4.latitude - point4.longitude * point3.latitude
+
+        d = a1 * b2 - a2 * b1
+
+        if d == 0:
+            follow_point = point.at_distance_and_azimuth(distance, north_angle1 + angle)
+            waypoint = (follow_point.latitude, follow_point.longitude, tolerance)
+            result.append(waypoint)
+        else:
+            y = (a2 * c1 - a1 * c2) / d
+            x = (b1 * c2 - b2 * c1) / d
+            waypoint = (y, x, tolerance)
+            result.append(waypoint)
+
+    return result
 
 
 class PID:

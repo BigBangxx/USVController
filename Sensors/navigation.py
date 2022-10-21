@@ -21,6 +21,7 @@ class Navigation:
 
         if settings.navigation_type == 'airsim':
             ip_port = ('0.0.0.0', settings.airsim_port)
+            ip_port = ('0.0.0.0', 18570)
             self.navigation_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.navigation_socket.bind(ip_port)
             self.navigation_socket.setblocking(False)
