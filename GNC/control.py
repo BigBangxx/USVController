@@ -301,9 +301,10 @@ class Control:
             # 推力控制
             if Gcs_command['index_sum'] / Gcs_command['ship_num'] < self.waypoint_index:  # 还有艇未到达相应路点
                 Gcs_command['desired_thrust'] = 0
-            elif Gcs_command['angle'] == 0 and Gcs_command['distance'] == 0:
+            if Gcs_command['angle'] == 0 and Gcs_command['distance'] == 0:
                 pass
-            elif Gcs_command['index_sum'] % Gcs_command['ship_num'] != 0: # 有艇到达路点，我还没到
+            elif Gcs_command['index_sum'] % Gcs_command['ship_num'] != 0 and Gcs_command['index_sum'] / Gcs_command[
+                'ship_num'] > self.waypoint_index:  # 有艇到达路点，我还没到
                 pass
             else:
                 distance = self.point_current.distance2(self.point_desired)
