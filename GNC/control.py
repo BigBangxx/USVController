@@ -326,10 +326,10 @@ class Control:
                     Gcs_command['desired_thrust'] -= self.position_pid.calculate_pid(distance, Pid['position_p'],
                                                                                      Pid['position_i'],
                                                                                      Pid['position_d'])
-                if Gcs_command['desired_thrust'] > 700:
-                    Gcs_command['desired_thrust'] = 700
-                if Gcs_command['desired_thrust'] < 110:
-                    Gcs_command['desired_thrust'] = 110
+                if Gcs_command['desired_thrust'] > 800:
+                    Gcs_command['desired_thrust'] = 800
+                if Gcs_command['desired_thrust'] < 100:
+                    Gcs_command['desired_thrust'] = 100
         if self.waypoint_index == len(self.waypoints) - 1:
             Gcs_command['desired_thrust'] = 0
 
