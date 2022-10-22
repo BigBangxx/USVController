@@ -17,7 +17,7 @@ class UsvControl:
         self.futaba = RemoteControlUnit()
         self.navigation = Navigation()
         self.gcs = GroundControlStation()
-        self.control = Control(self.gcs)
+        self.control = Control()
         self.log = Log()
 
     def ms10_run(self):

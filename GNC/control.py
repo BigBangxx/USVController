@@ -8,7 +8,7 @@ from GNC.guidance import calculate_los_angle
 
 
 class Control:
-    def __init__(self, gcs_communicator: GroundControlStation):
+    def __init__(self):
         self.waypoints = 0
         self.point_previous = Point(0.0, 0.0)
         self.point_current = Point(0.0, 0.0)
@@ -22,7 +22,7 @@ class Control:
         self.position_pid = PID()
         self.speed_max = settings.speed_max
         self.lastInRing = False
-        self.gcs_communicator = gcs_communicator  # type: GroundControlStation
+        # self.gcs_communicator = gcs_communicator  # type: GroundControlStation
 
     def c_run(self):
         self.__update()
@@ -39,6 +39,7 @@ class Control:
         self.point_desired = Point(Gcs_command['desired_latitude'], Gcs_command['desired_longitude'])
         if Gcs_command['setting'] != 8 and Gcs_command['setting'] != 9:
             self.last_setting = Gcs_command['setting']
+            self.waypoint_index = 0
         if Gcs_command['setting'] != 9:
             Gcs_command['index_sum'] = 0
             Gcs_command['index'] = 0
@@ -300,7 +301,7 @@ class Control:
                 way_point = self.waypoints[self.waypoint_index]
                 point_next.latitude = way_point[0]
                 point_next.longitude = way_point[1]
-                self.gcs_communicator.send_arrive_packet()
+                # self.gcs_communicator.send_arrive_packet()
             if self.waypoint_index == 0:
                 Ctrl_data['desired_heading'] = self.point_current.azimuth2(point_next)
             else:

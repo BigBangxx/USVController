@@ -129,7 +129,7 @@ class GroundControlStation:
                     self.gcs_serial.write(send_data)
 
     def __send_status(self):
-        data_bytes = struct.pack('<HdBdddffffffffffffHHffhhb', settings.usv_id, time.time(), Ctrl_data['status'],
+        data_bytes = struct.pack('<HdBdddffffffffffffHHffhhbH', settings.usv_id, time.time(), Ctrl_data['status'],
                                  Nav_data['location']['latitude'], Nav_data['location']['longitude'],
                                  Nav_data['location']['altitude'], Nav_data['posture']['roll'],
                                  Nav_data['posture']['pitch'], Nav_data['posture']['yaw'],
@@ -138,8 +138,8 @@ class GroundControlStation:
                                  Nav_data['gyroscope']['Z'], Nav_data['accelerometer']['X'],
                                  Nav_data['accelerometer']['Y'], Nav_data['accelerometer']['Z'],
                                  Nav_data['system_status'], Nav_data['filter_status'], 0, 0, Ctrl_data['rudder'],
-                                 Ctrl_data['thrust'], Ctrl_data['ignition'])
-        send_data = Anpp.encode(data_bytes, 16)  # 回应包id=16，包长100
+                                 Ctrl_data['thrust'], Ctrl_data['ignition'], Gcs_command['index'])
+        send_data = Anpp.encode(data_bytes, 16)  # 回应包id=16，包长102
         if self.communication_type == 'udp':
             self.gcs_socket.sendto(send_data, self.server_ip_port)
         else:
@@ -155,10 +155,10 @@ class GroundControlStation:
         #         print(1)
         #     Globals['Send_arrive_waypoint_packet'] = False
 
-    def send_arrive_packet(self, ):
-        data_bytes = struct.pack('<Hd', settings.usv_id, time.time())
-        send_data = Anpp.encode(data_bytes, 20)  # 回应包id=20，包长10
-        if self.communication_type == 'udp':
-            self.gcs_socket.sendto(send_data, self.server_ip_port)
-        else:
-            self.gcs_serial.write(send_data)
+    # def send_arrive_packet(self, ):
+    #     data_bytes = struct.pack('<Hd', settings.usv_id, time.time())
+    #     send_data = Anpp.encode(data_bytes, 20)  # 回应包id=20，包长10
+    #     if self.communication_type == 'udp':
+    #         self.gcs_socket.sendto(send_data, self.server_ip_port)
+    #     else:
+    #         self.gcs_serial.write(send_data)
