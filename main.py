@@ -27,6 +27,7 @@ class UsvControl:
         self.navigation.n_run()
         self.gcs.g_run()
         self.control.c_run()
+        self.gcs.g_run()
         self.log.write_log()
 
     def ms1000_run(self):
