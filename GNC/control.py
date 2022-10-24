@@ -20,6 +20,7 @@ class Control:
         self.thrust_expert_pid = ExpertPID()
         self.thrust_pid = PID()
         self.position_pid = PID()
+        self.position_pid_1 = PID()
         self.speed_max = settings.speed_max
         self.lastInRing = False
         # self.gcs_communicator = gcs_communicator  # type: GroundControlStation
@@ -322,12 +323,13 @@ class Control:
                     Gcs_command['desired_thrust'] += self.position_pid.calculate_pid(distance, Pid['position_p'],
                                                                                      Pid['position_i'],
                                                                                      Pid['position_d'])
+                    self.position_pid_1.data['err_i'] = 0
                 else:
-                    Gcs_command['desired_thrust'] -= self.position_pid.calculate_pid(distance, Pid['position_p'],
-                                                                                     Pid['position_i'],
-                                                                                     Pid['position_d'])
-                if Gcs_command['desired_thrust'] > 800:
-                    Gcs_command['desired_thrust'] = 800
+                    Gcs_command['desired_thrust'] -= self.position_pid_1.calculate_pid(distance, Pid['speed_p'],
+                                                                                       Pid['speed_i'], Pid['speed_d'])
+                    self.position_pid.data['err_i'] = 0
+                if Gcs_command['desired_thrust'] > 850:
+                    Gcs_command['desired_thrust'] = 850
                 if Gcs_command['desired_thrust'] < 100:
                     Gcs_command['desired_thrust'] = 100
         if self.waypoint_index == len(self.waypoints) - 1:
