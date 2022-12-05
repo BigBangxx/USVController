@@ -23,7 +23,6 @@ class Control:
         self.position_pid_1 = PID()
         self.speed_max = settings.speed_max
         self.lastInRing = False
-        # self.gcs_communicator = gcs_communicator  # type: GroundControlStation
 
     def c_run(self):
         self.__update()
@@ -278,11 +277,14 @@ class Control:
             else:
                 Ctrl_data['desired_heading'] = calculate_los_angle(self.point_previous, self.point_current,
                                                                    point_next, settings.los_distance)
-        if self.waypoint_index == len(self.waypoints) - 1:
-            Gcs_command['desired_thrust'] = 0
-        self.last_setting = Gcs_command['setting']
+            if self.waypoint_index == len(self.waypoints) - 1 and distance < way_point[2]:
+                self.__lock()
+            else:
+                self.__heading()
+        else:
+            self.__lock()
 
-        self.__heading()
+        self.last_setting = Gcs_command['setting']
 
     def __formation_mission(self):  # 9
         if self.last_setting != 9:
@@ -308,11 +310,11 @@ class Control:
             else:
                 Ctrl_data['desired_heading'] = calculate_los_angle(self.point_previous, self.point_current,
                                                                    point_next, settings.los_distance)
+            Ctrl_data['rudder'] = limit_1000(int(self.__control_heading(Ctrl_data['desired_heading'])))
+
             # 推力控制
             if Gcs_command['index_sum'] / Gcs_command['ship_num'] < self.waypoint_index:  # 还有艇未到达相应路点
-                Gcs_command['desired_thrust'] = 0
-            # elif Gcs_command['index_sum'] / Gcs_command['ship_num'] > self.waypoint_index:  # 有艇到达路点，我还没到
-            #     pass
+                Ctrl_data['thrust'] = 0
             elif Gcs_command['angle'] == 0 and Gcs_command['distance'] == 0:
                 pass
             else:
@@ -332,13 +334,17 @@ class Control:
                     Gcs_command['desired_thrust'] = 850
                 if Gcs_command['desired_thrust'] < 100:
                     Gcs_command['desired_thrust'] = 100
-        if self.waypoint_index == len(self.waypoints) - 1:
-            Gcs_command['desired_thrust'] = 0
+
+                Ctrl_data['thrust'] = limit_1000(int(Gcs_command['desired_thrust']))
+
+            if self.waypoint_index == len(self.waypoints) - 1 and distance < way_point[2]:
+                self.__lock()
+        else:
+            self.__lock()
 
         self.last_setting = Gcs_command['setting']
         Gcs_command['index'] = self.waypoint_index
 
-        self.__heading()
 
     def __point_keeping(self):
         # desired_heading = self.point_current.azimuth2(self.point_desired)
