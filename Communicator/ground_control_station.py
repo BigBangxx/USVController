@@ -12,12 +12,19 @@ class GroundControlStation:
     def __init__(self):
         self.waypoints = []
         self.communication_type = settings.gcs_communication_type
+        usv_ip_port = ('0.0.0.0', settings.gcs_server_port - 1)
+        self.server_ip_port = (settings.gcs_server_ip, settings.gcs_server_port)
         if self.communication_type == 'udp':
-            usv_ip_port = ('0.0.0.0', settings.gcs_server_port)
-            usv_ip_port = ('0.0.0.0', 7895)
-            self.server_ip_port = (settings.gcs_server_ip, settings.gcs_server_port)
             self.gcs_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.gcs_socket.bind(usv_ip_port)
+            self.gcs_socket.setblocking(False)
+        elif self.communication_type == 'tcp':
+            self.gcs_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.gcs_socket.bind(usv_ip_port)
+            self.gcs_socket.connect(self.server_ip_port)
+            data_bytes = struct.pack('<H', settings.usv_id)
+            send_data = Anpp.encode(data_bytes, 255)  # 参数包id=17，包长46
+            self.gcs_socket.send(send_data)
             self.gcs_socket.setblocking(False)
         else:
             self.gcs_serial = serial.Serial(settings.gcs_com, 57600, timeout=0, write_timeout=0)
@@ -37,10 +44,14 @@ class GroundControlStation:
             try:
                 data, send_address = self.gcs_socket.recvfrom(1024)
             except BlockingIOError:
-                data = ""
-                send_address = ()
-            if send_address == (settings.gcs_server_ip, settings.gcs_server_port):
-                self.buffer += data
+                data = b""
+            self.buffer += data
+        elif self.communication_type == 'tcp':
+            try:
+                data = self.gcs_socket.recv(1024)
+            except BlockingIOError:
+                data = b""
+            self.buffer += data
         else:
             self.buffer += self.gcs_serial.read(self.gcs_serial.in_waiting)
 
@@ -142,23 +153,7 @@ class GroundControlStation:
         send_data = Anpp.encode(data_bytes, 16)  # 回应包id=16，包长102
         if self.communication_type == 'udp':
             self.gcs_socket.sendto(send_data, self.server_ip_port)
+        elif self.communication_type == 'tcp':
+            self.gcs_socket.send(send_data)
         else:
             self.gcs_serial.write(send_data)
-        # if Globals['Send_arrive_waypoint_packet']:
-        #     data_bytes = struct.pack('<Hd', settings.usv_id, time.time())
-        #     send_data = Anpp.encode(data_bytes, 20)  # 回应包id=20，包长10
-        #     if self.communication_type == 'udp':
-        #         self.gcs_socket.sendto(send_data, self.server_ip_port)
-        #     else:
-        #         self.gcs_serial.write(send_data)
-        #     for _ in range(100):
-        #         print(1)
-        #     Globals['Send_arrive_waypoint_packet'] = False
-
-    # def send_arrive_packet(self, ):
-    #     data_bytes = struct.pack('<Hd', settings.usv_id, time.time())
-    #     send_data = Anpp.encode(data_bytes, 20)  # 回应包id=20，包长10
-    #     if self.communication_type == 'udp':
-    #         self.gcs_socket.sendto(send_data, self.server_ip_port)
-    #     else:
-    #         self.gcs_serial.write(send_data)
