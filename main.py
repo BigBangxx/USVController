@@ -25,8 +25,11 @@ class UsvControl:
         timer_10.start()
         self.futaba.rcu_run()
         self.navigation.n_run()
-        self.gcs.g_run()
         self.control.c_run()
+
+    def ms100_run(self):
+        timer_100 = threading.Timer(0.1, self.ms100_run, )
+        timer_100.start()
         self.gcs.g_run()
         self.log.write_log()
 
@@ -46,4 +49,5 @@ class UsvControl:
 if __name__ == '__main__':
     usv1 = UsvControl()
     usv1.ms10_run()
+    usv1.ms100_run()
     usv1.ms1000_run()

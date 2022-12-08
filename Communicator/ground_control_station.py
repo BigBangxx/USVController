@@ -12,7 +12,7 @@ class GroundControlStation:
     def __init__(self):
         self.waypoints = []
         self.communication_type = settings.gcs_communication_type
-        usv_ip_port = ('0.0.0.0', settings.gcs_server_port - 1)
+        usv_ip_port = ('0.0.0.0', 0)
         self.server_ip_port = (settings.gcs_server_ip, settings.gcs_server_port)
         if self.communication_type == 'udp':
             self.gcs_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -63,7 +63,9 @@ class GroundControlStation:
             packet_data_length = len(packet_data)
 
             if packet_id == 0 and packet_data_length == 8:  # 心跳包
+                command = struct.unpack('<d', bytes(packet_data))
                 Gcs_heart_beat['timestamp'] = time.time()
+                Gcs_heart_beat['delay'] = time.time() - command[0]
                 Gcs_heart_beat['buffer_err'] = self.errors
             elif (packet_data[0] | packet_data[1] << 8) != settings.usv_id:  # 数据过滤
                 continue

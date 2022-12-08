@@ -31,7 +31,7 @@ Nav_data = {'location': {'latitude': 0.0, 'longitude': 0.0, 'altitude': 0.0, 'hA
             'timestamp': 0.0, 'errors': 0, 'system_status': 0, 'filter_status': 0}
 
 # Ground Control Station
-Gcs_heart_beat = {'timestamp': 0.0, 'buffer_err': 0}
+Gcs_heart_beat = {'timestamp': 0.0, 'delay': 0.0, 'buffer_err': 0}
 Gcs_command = {'timestamp': 0.0, 'setting': 0, 'desired_heading': 0.0, 'desired_speed': 0.0, 'desired_latitude': 0.0,
                'desired_longitude': 0.0, 'desired_rudder': 0, 'desired_thrust': 0, 'ignition': 0, 'angle': 0,
                'distance': 0, 'ship_num': 0, 'index_sum': 0,  'average_index': 0, 'index': 0, 'buffer_err': 0}
