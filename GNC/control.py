@@ -19,8 +19,8 @@ class Control:
         self.rudder_pid = PID()
         self.thrust_expert_pid = ExpertPID()
         self.thrust_pid = PID()
-        self.position_pid = PID()
-        self.position_pid_1 = PID()
+        self.position_pid_X_up = PID()
+        self.position_pid_Y_low = PID()
         self.speed_max = settings.speed_max
         self.lastInRing = False
 
@@ -205,10 +205,10 @@ class Control:
             distanceX = distance * math.cos(angle)
             distanceY = distance * math.sin(angle)
 
-            speedX += self.position_pid.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'],
-                                                      Pid['position_d'])
-            speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], Pid['position_i'],
-                                                      Pid['position_d'])
+            speedX += self.position_pid_X_up.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'],
+                                                           Pid['position_d'])
+            speedY += self.position_pid_Y_low.calculate_pid(distanceY, Pid['position_p2'], Pid['position_i2'],
+                                                            Pid['position_d2'])
 
             speed = math.hypot(speedX, speedY)
 
@@ -219,7 +219,7 @@ class Control:
             if yaw < 0:
                 yaw += math.pi * 2
         # ############################################################################ 制导加速度矢量
-        if settings.formation_type == 1:
+        elif settings.formation_type == 1:
             angle = self.point_current.azimuth2(self.point_desired)
             d_angle = abs(angle - yaw)
             if d_angle < math.pi / 2 or 3 * math.pi / 2 < d_angle < 2 * math.pi:  # 目标点在无人艇前方
@@ -230,10 +230,10 @@ class Control:
                 distanceX = distance * math.cos(angle)
                 distanceY = distance * math.sin(angle)
 
-                speedX += self.position_pid.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'],
-                                                          Pid['position_d'])
-                speedY += self.position_pid.calculate_pid(distanceY, Pid['position_p'], Pid['position_i'],
-                                                          Pid['position_d'])
+                speedX += self.position_pid_X_up.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'],
+                                                               Pid['position_d'])
+                speedY += self.position_pid_Y_low.calculate_pid(distanceY, Pid['posittrackion_p2'], Pid['position_i2'],
+                                                                Pid['position_d2'])
 
                 speed = math.hypot(speedX, speedY)
 
@@ -246,7 +246,8 @@ class Control:
 
             else:  # 目标点在无人艇后方
                 speed *= settings.speed_coefficient
-                self.position_pid.data['err_i'] = 0
+                self.position_pid_X_up.data['err_i'] = 0
+                self.position_pid_Y_low.data['err_i'] = 0
                 point_next = self.point_desired.at_distance_and_azimuth(999, yaw)
                 yaw = calculate_los_angle(self.point_desired, self.point_current, point_next,
                                           settings.los_distance_tracking)
@@ -322,14 +323,16 @@ class Control:
                 angle = self.point_current.azimuth2(self.point_desired)
                 d_angle = abs(angle - Gcs_command['desired_heading'])
                 if d_angle < math.pi / 2 or 3 * math.pi / 2 < d_angle < 2 * math.pi:  # 目标点在无人艇前方
-                    Gcs_command['desired_thrust'] += self.position_pid.calculate_pid(distance, Pid['position_p'],
-                                                                                     Pid['position_i'],
-                                                                                     Pid['position_d'])
-                    self.position_pid_1.data['err_i'] = 0
+                    Gcs_command['desired_thrust'] += self.position_pid_X_up.calculate_pid(distance,
+                                                                                          Pid['position_p'],
+                                                                                          Pid['position_i'],
+                                                                                          Pid['position_d'])
+                    self.position_pid_Y_low.data['err_i'] = 0
                 else:
-                    Gcs_command['desired_thrust'] -= self.position_pid_1.calculate_pid(distance, Pid['speed_p'],
-                                                                                       Pid['speed_i'], Pid['speed_d'])
-                    self.position_pid.data['err_i'] = 0
+                    Gcs_command['desired_thrust'] -= self.position_pid_Y_low.calculate_pid(distance, Pid['position_p2'],
+                                                                                           Pid['position_i2'],
+                                                                                           Pid['position_d2'])
+                    self.position_pid_X_up.data['err_i'] = 0
                 if Gcs_command['desired_thrust'] > 850:
                     Gcs_command['desired_thrust'] = 850
                 if Gcs_command['desired_thrust'] < 100:
@@ -344,7 +347,6 @@ class Control:
 
         self.last_setting = Gcs_command['setting']
         Gcs_command['index'] = self.waypoint_index
-
 
     def __point_keeping(self):
         # desired_heading = self.point_current.azimuth2(self.point_desired)

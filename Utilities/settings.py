@@ -25,6 +25,9 @@ class Settings:
             config.set('usv', 'position_p', '0.3')
             config.set('usv', 'position_i', '0')
             config.set('usv', 'position_d', '0')
+            config.set('usv', 'position_p2', '0.3')
+            config.set('usv', 'position_i2', '0')
+            config.set('usv', 'position_d2', '0')
             config.set('usv', 'ctrl_cycle_time', '0.01')
 
             config.add_section('rcu')
@@ -78,6 +81,9 @@ class Settings:
             self.position_p = eval(config.get('usv', 'position_p'))
             self.position_i = eval(config.get('usv', 'position_i'))
             self.position_d = eval(config.get('usv', 'position_d'))
+            self.position_p2 = eval(config.get('usv', 'position_p2'))
+            self.position_i2 = eval(config.get('usv', 'position_i2'))
+            self.position_d2 = eval(config.get('usv', 'position_d2'))
             self.ctrl_cycle_time = eval(config.get('usv', 'ctrl_cycle_time'))
 
             self.sbus_com = config.get('rcu', 'sbus_com')
@@ -108,7 +114,7 @@ class Settings:
             self.los_distance_tracking = eval(config.get('formation', 'los_distance_tracking'))
 
     @staticmethod
-    def update_pid(hp, hi, hd, sp, si, sd, pp, pi, pd):
+    def update_pid(hp, hi, hd, sp, si, sd, pp, pi, pd, p2p, p2i, p2d):
         with open("AppData/settings.ini", ) as ini:
             config = configparser.ConfigParser()
             config.read_file(ini)
@@ -121,5 +127,8 @@ class Settings:
             config.set('usv', 'position_p', f'{pp}')
             config.set('usv', 'position_i', f'{pi}')
             config.set('usv', 'position_d', f'{pd}')
+            config.set('usv', 'position_p2', f'{p2p}')
+            config.set('usv', 'position_i2', f'{p2i}')
+            config.set('usv', 'position_d2', f'{p2d}')
         with open("AppData/settings.ini", 'w') as ini:
             config.write(ini)

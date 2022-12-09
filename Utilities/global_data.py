@@ -11,7 +11,8 @@ mission = Mission(settings.usv_id)
 Pid = {'id': settings.usv_id, 'heading_p': settings.heading_p, 'heading_i': settings.heading_i,
        'heading_d': settings.heading_d, 'speed_p': settings.speed_p, 'speed_i': settings.speed_i,
        'speed_d': settings.speed_d, 'position_p': settings.position_p, 'position_i': settings.position_i,
-       'position_d': settings.position_d}
+       'position_d': settings.position_d, 'position_p2': settings.position_p2, 'position_i2': settings.position_i2,
+       'position_d2': settings.position_d2}
 
 # Control parameter
 Ctrl_data = {'status': 0, 'mode': 'lock', 'thrust': 0, 'rudder': 0, 'ignition': 0, 'desired_heading': 0.0,

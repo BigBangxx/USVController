@@ -87,10 +87,11 @@ class GroundControlStation:
                     Gcs_command['index_sum'] = command[11]
 
             elif packet_id == 2 and packet_data_length == 10:  # 参数请求
-                data_bytes = struct.pack('<Hdfffffffff', settings.usv_id, time.time(), Pid['heading_p'],
+                data_bytes = struct.pack('<Hdffffffffffff', settings.usv_id, time.time(), Pid['heading_p'],
                                          Pid['heading_i'], Pid['heading_d'], Pid['speed_p'], Pid['speed_i'],
-                                         Pid['speed_d'], Pid['position_p'], Pid['position_i'], Pid['position_d'])
-                send_data = Anpp.encode(data_bytes, 17)  # 参数包id=17，包长46
+                                         Pid['speed_d'], Pid['position_p'], Pid['position_i'], Pid['position_d'],
+                                         Pid['position_p2'], Pid['position_i2'], Pid['position_d2'])
+                send_data = Anpp.encode(data_bytes, 17)  # 参数包id=17，包长58
                 if self.communication_type == 'udp':
                     self.gcs_socket.sendto(send_data, self.server_ip_port)
                 elif self.communication_type == 'tcp':
@@ -98,9 +99,9 @@ class GroundControlStation:
                 else:
                     self.gcs_serial.write(send_data)
 
-            elif packet_id == 3 and packet_data_length == 46:  # 设置请求
+            elif packet_id == 3 and packet_data_length == 58:  # 设置请求
                 # 解析PID参数
-                pid = struct.unpack('<fffffffff', bytes(packet_data[10:packet_data_length]))
+                pid = struct.unpack('<ffffffffffff', bytes(packet_data[10:packet_data_length]))
                 # 保存PID
                 Pid['heading_p'] = pid[0]
                 Pid['heading_i'] = pid[1]
@@ -111,7 +112,11 @@ class GroundControlStation:
                 Pid['position_p'] = pid[6]
                 Pid['position_i'] = pid[7]
                 Pid['position_d'] = pid[8]
-                settings.update_pid(pid[0], pid[1], pid[2], pid[3], pid[4], pid[5], pid[6], pid[7], pid[8])
+                Pid['position_p2'] = pid[9]
+                Pid['position_i2'] = pid[10]
+                Pid['position_d2'] = pid[11]
+                settings.update_pid(pid[0], pid[1], pid[2], pid[3], pid[4], pid[5], pid[6], pid[7], pid[8], pid[9],
+                                    pid[10], pid[11])
                 # 设置回应
                 data_bytes = struct.pack('<HdB', settings.usv_id, time.time(), 0xff)
                 send_data = Anpp.encode(data_bytes, 18)  # 回应包id=18，包长11
