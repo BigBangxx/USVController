@@ -93,6 +93,8 @@ class GroundControlStation:
                 send_data = Anpp.encode(data_bytes, 17)  # 参数包id=17，包长46
                 if self.communication_type == 'udp':
                     self.gcs_socket.sendto(send_data, self.server_ip_port)
+                elif self.communication_type == 'tcp':
+                    self.gcs_socket.send(send_data)
                 else:
                     self.gcs_serial.write(send_data)
 
@@ -115,6 +117,8 @@ class GroundControlStation:
                 send_data = Anpp.encode(data_bytes, 18)  # 回应包id=18，包长11
                 if self.communication_type == 'udp':
                     self.gcs_socket.sendto(send_data, self.server_ip_port)
+                elif self.communication_type == 'tcp':
+                    self.gcs_socket.send(send_data)
                 else:
                     self.gcs_serial.write(send_data)
 
@@ -138,6 +142,8 @@ class GroundControlStation:
                 send_data = Anpp.encode(data_bytes, 19)  # 回应包id=19，包长11
                 if self.communication_type == 'udp':
                     self.gcs_socket.sendto(send_data, self.server_ip_port)
+                elif self.communication_type == 'tcp':
+                    self.gcs_socket.send(send_data)
                 else:
                     self.gcs_serial.write(send_data)
 
