@@ -35,5 +35,8 @@ Nav_data = {'location': {'latitude': 0.0, 'longitude': 0.0, 'altitude': 0.0, 'hA
 Gcs_heart_beat = {'timestamp': 0.0, 'delay': 0.0, 'buffer_err': 0}
 Gcs_command = {'timestamp': 0.0, 'setting': 0, 'desired_heading': 0.0, 'desired_speed': 0.0, 'desired_latitude': 0.0,
                'desired_longitude': 0.0, 'desired_rudder': 0, 'desired_thrust': 0, 'ignition': 0, 'angle': 0,
-               'distance': 0, 'ship_num': 0, 'index_sum': 0,  'average_index': 0, 'index': 0, 'buffer_err': 0}
-Globals = {'Send_arrive_waypoint_packet': False}
+               'distance': 0, 'ship_num': 0, 'index_sum': 0, 'average_index': 0, 'index': 0, 'buffer_err': 0}
+
+data_of_formation = {"type": 0, 'target': 'front', 'target_yaw': 0, "target_speed": 0, "target_speedX": 0,
+                     "target_speedY": 0, 'distance': 0, 'distanceX': 0, 'distanceY': 0, 'speed': 0, "speedX": 0,
+                     "speedY": 0, 'yaw': 0}

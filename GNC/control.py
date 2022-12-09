@@ -1,7 +1,6 @@
 import math
 import time
 
-from Communicator.ground_control_station import GroundControlStation
 from Utilities.global_data import *
 from Utilities.geocoordinate import GeoCoordinate as Point
 from GNC.guidance import calculate_los_angle
@@ -195,15 +194,23 @@ class Control:
         #                                                               Pid['position_i'], Pid['position_d'])
         speed = Gcs_command['desired_speed']
         yaw = Gcs_command['desired_heading']
+        data_of_formation['target_speed'] = speed
+        data_of_formation['target_yaw'] = yaw
         # ############################################################################ 纯速度矢量
         if settings.formation_type == 0:
+            data_of_formation['type'] = 0
             speedX = speed * math.cos(yaw)
             speedY = speed * math.sin(yaw)
+            data_of_formation['target_speedX'] = speedX
+            data_of_formation['target_speedY'] = speedY
 
             angle = self.point_current.azimuth2(self.point_desired)
             distance = self.point_current.distance2(self.point_desired)
             distanceX = distance * math.cos(angle)
             distanceY = distance * math.sin(angle)
+            data_of_formation['distance'] = distance
+            data_of_formation['distanceX'] = distanceX
+            data_of_formation['distanceY'] = distanceY
 
             speedX += self.position_pid_X_up.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'],
                                                            Pid['position_d'])
@@ -211,6 +218,9 @@ class Control:
                                                             Pid['position_d2'])
 
             speed = math.hypot(speedX, speedY)
+            data_of_formation['speed'] = speed
+            data_of_formation['speedX'] = speedX
+            data_of_formation['speedY'] = speedY
 
             if speed > self.speed_max:
                 speed = self.speed_max
@@ -218,17 +228,25 @@ class Control:
             yaw = math.atan2(speedY, speedX)
             if yaw < 0:
                 yaw += math.pi * 2
+            data_of_formation['yaw'] = yaw
         # ############################################################################ 制导加速度矢量
         elif settings.formation_type == 1:
+            data_of_formation['type'] = 1
             angle = self.point_current.azimuth2(self.point_desired)
             d_angle = abs(angle - yaw)
             if d_angle < math.pi / 2 or 3 * math.pi / 2 < d_angle < 2 * math.pi:  # 目标点在无人艇前方
+                data_of_formation['target'] = 'front'
                 speedX = speed * math.cos(yaw)
                 speedY = speed * math.sin(yaw)
+                data_of_formation['target_speedX'] = speedX
+                data_of_formation['target_speedY'] = speedY
 
                 distance = self.point_current.distance2(self.point_desired)
                 distanceX = distance * math.cos(angle)
                 distanceY = distance * math.sin(angle)
+                data_of_formation['distance'] = distance
+                data_of_formation['distanceX'] = distanceX
+                data_of_formation['distanceY'] = distanceY
 
                 speedX += self.position_pid_X_up.calculate_pid(distanceX, Pid['position_p'], Pid['position_i'],
                                                                Pid['position_d'])
@@ -237,20 +255,28 @@ class Control:
 
                 speed = math.hypot(speedX, speedY)
 
+                data_of_formation['speed'] = speed
+                data_of_formation['speedX'] = speedX
+                data_of_formation['speedY'] = speedY
+
                 if speed > self.speed_max:
                     speed = self.speed_max
 
                 yaw = math.atan2(speedY, speedX)
                 if yaw < 0:
                     yaw += math.pi * 2
+                data_of_formation['yaw'] = yaw
 
             else:  # 目标点在无人艇后方
+                data_of_formation['target'] = 'behind'
                 speed *= settings.speed_coefficient
                 self.position_pid_X_up.data['err_i'] = 0
                 self.position_pid_Y_low.data['err_i'] = 0
                 point_next = self.point_desired.at_distance_and_azimuth(999, yaw)
                 yaw = calculate_los_angle(self.point_desired, self.point_current, point_next,
                                           settings.los_distance_tracking)
+                data_of_formation['speed'] = speed
+                data_of_formation['yaw'] = yaw
 
         Ctrl_data['desired_heading'] = yaw
         Ctrl_data['desired_speed'] = speed

@@ -5,7 +5,7 @@ import serial
 import struct
 
 from Protocols.Anpp import Anpp
-from Utilities.global_data import Gcs_heart_beat, Gcs_command, Nav_data, Ctrl_data, Pid, settings, mission, Globals
+from Utilities.global_data import Gcs_heart_beat, Gcs_command, Nav_data, Ctrl_data, Pid, settings, mission
 
 
 class GroundControlStation:

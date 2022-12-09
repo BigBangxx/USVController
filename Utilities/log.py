@@ -1,6 +1,6 @@
 import time
 
-from Utilities.global_data import Ctrl_data, Gcs_command, Nav_data, Pid, settings
+from Utilities.global_data import Ctrl_data, Gcs_command, Nav_data, Pid, settings, data_of_formation
 
 
 class Log:
@@ -13,7 +13,7 @@ class Log:
             log.write('Rudder,Thrust,Status,')
             log.write('Latitude,Longitude,Altitude,')
             log.write('Roll,Pitch,Yaw,')
-            log.write('Speed,VelocityNorth,VelocityEast,VelocityDown,VelocityX,VelocityY,VelocityZ')
+            log.write('Speed,VelocityNorth,VelocityEast,VelocityDown,VelocityX,VelocityY,VelocityZ,')
             log.write('GyroscopeX,GyroscopeY,GyroscopeZ,')
             log.write('AccelerometerX,AccelerometerY,AccelerometerZ,')
             log.write('SystemStatus,FilterStatus,')
@@ -21,7 +21,10 @@ class Log:
             log.write('DesiredHeading,DesiredSpeed,DesiredLatitude,DesiredLongitude,')
             log.write('HeadingP,HeadingI,HeadingD,')
             log.write('SpeedP,SpeedI,SpeedD,')
-            log.write('PositionP,PositionI,PositionD\n')
+            log.write('PositionP,PositionI,PositionD,')
+            log.write('PositionP2,PositionI2,PositionD2,')
+            log.write("formation_type,target,target_yaw,target_speed,target_speedX,target_speedY,")
+            log.write('distance,distanceX,distanceY,speed,speedX,speedY,yaw\n')
 
     def write_log(self):
         with open(self.file_name, 'a') as log:
@@ -54,5 +57,12 @@ class Log:
 
             log.write(f"{Pid['heading_p']},{Pid['heading_i']},{Pid['heading_d']},")
             log.write(f"{Pid['speed_p']},{Pid['speed_i']},{Pid['speed_d']},")
-            log.write(
-                f"{Pid['position_p']},{Pid['position_i']},{Pid['position_d']}\n")
+            log.write(f"{Pid['position_p']},{Pid['position_i']},{Pid['position_d']},")
+            log.write(f"{Pid['position_p2']},{Pid['position_i2']},{Pid['position_d2']},")
+
+            log.write(f"{data_of_formation['type']},{data_of_formation['target']},")
+            log.write(f"{data_of_formation['target_yaw']},{data_of_formation['target_speed']},")
+            log.write(f"{data_of_formation['target_speedX']},{data_of_formation['target_speedY']},")
+            log.write(f"{data_of_formation['distance']},{data_of_formation['distanceX']},")
+            log.write(f"{data_of_formation['distanceY']},{data_of_formation['speed']},{data_of_formation['speedX']},")
+            log.write(f"{data_of_formation['speedY']},{data_of_formation['yaw']}\n")
