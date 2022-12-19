@@ -28,9 +28,7 @@
 
 ![image-20220226224850116](https://gitee.com/sttdo/picture/raw/master/img/2022/02/image-20220226224850116.png)
 
+
+
 编队视频：https://www.bilibili.com/video/BV1xe411g788
-
-
-
-#### 项目合作、开发、交流，联系sangtongtong@qq.com
 
