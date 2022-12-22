@@ -343,7 +343,7 @@ class Control:
             if Gcs_command['index_sum'] / Gcs_command['ship_num'] < self.waypoint_index:  # 还有艇未到达相应路点
                 Ctrl_data['thrust'] = 0
             elif Gcs_command['angle'] == 0 and Gcs_command['distance'] == 0:
-                pass
+                Ctrl_data['thrust'] = limit_1000(int(Gcs_command['desired_thrust']))
             else:
                 distance = self.point_current.distance2(self.point_desired)
                 angle = self.point_current.azimuth2(self.point_desired)
