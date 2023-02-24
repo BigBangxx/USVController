@@ -9,6 +9,7 @@ from Protocols.FDILink import FDILink
 from Protocols.Wit import Wit
 from Protocols.Rion import Rion
 from Protocols.Anpp import Anpp
+from Protocols import Nmea0183
 from Utilities.global_data import Nav_data, Ctrl_data, settings
 
 
@@ -40,6 +41,8 @@ class Navigation:
             self.__fdi_device_decode()
         elif settings.navigation_type == 'anpp':
             self.__anpp_decode()
+        elif settings.navigation_type == 'nmea0183':
+            self.__nmea0183_decode()
 
     def __anpp_decode(self):
         self.buffer += self.navigation.read(self.navigation.in_waiting)
@@ -185,6 +188,39 @@ class Navigation:
                 Nav_data['velocity']['speed'] = math.hypot(Nav_data['velocity']['north'], Nav_data['velocity']['east'])
 
             Nav_data['timestamp'] = time.time()
+
+    def __nmea0183_decode(self):
+        self.buffer += self.navigation.read(self.navigation.in_waiting)
+        while True:
+            packet_data, Nav_data["errors"] = Nmea0183.decode_buffer(self.buffer, Nav_data["errors"])
+            if packet_data is None:
+                break
+
+            string = packet_data.decode('latin-1')
+            # print(string)
+            fields = string.split(",")
+            if len(fields) < 22:
+                break
+            if "KSXT" in fields[0]:
+                Nav_data['timestamp'] = time.time()
+                Nav_data['location']['latitude'] = math.radians(float(fields[2]))
+                Nav_data['location']['longitude'] = math.radians(float(fields[3]))
+                Nav_data['location']['altitude'] = float(fields[4])
+                Nav_data['posture']['yaw'] = math.radians(float(fields[5]))
+                Nav_data['posture']['pitch'] = math.radians(float(fields[6]))
+                Nav_data['posture']['roll'] = math.radians(float(fields[9]))
+                if int(fields[10]) == 2 or int(fields[10]) == 3:
+                    Nav_data['location']['hACC'] = 5
+                    Nav_data['location']['vACC'] = 5
+                else:
+                    Nav_data['location']['hACC'] = 100
+                    Nav_data['location']['vACC'] = 100
+                Nav_data['velocity']['east'] = float(fields[17]) / 3.6
+                Nav_data['velocity']['north'] = float(fields[18]) / 3.6
+                Nav_data['velocity']['X'] = Nav_data['velocity']['north'] * math.cos(Nav_data['posture']['yaw']) + Nav_data['velocity']['east'] * math.sin(Nav_data['posture']['yaw'])
+                Nav_data['velocity']['Y'] = Nav_data['velocity']['north'] * math.sin(Nav_data['posture']['yaw']) + Nav_data['velocity']['east'] * math.cos(Nav_data['posture']['yaw'])
+                Nav_data['velocity']['down'] = float(fields[19]) / 3.6
+                Nav_data['velocity']['speed'] = math.hypot(Nav_data['velocity']['north'], Nav_data['velocity']['east'])
 
     def __airsim_decode(self):
         try:
