@@ -196,31 +196,36 @@ class Navigation:
             if packet_data is None:
                 break
 
-            string = packet_data.decode('latin-1')
-            # print(string)
+            string = packet_data.decode()
             fields = string.split(",")
-            if len(fields) < 22:
+            if len(fields) != 23:
                 break
             if "KSXT" in fields[0]:
-                Nav_data['timestamp'] = time.time()
-                Nav_data['location']['latitude'] = math.radians(float(fields[2]))
-                Nav_data['location']['longitude'] = math.radians(float(fields[3]))
-                Nav_data['location']['altitude'] = float(fields[4])
-                Nav_data['posture']['yaw'] = math.radians(float(fields[5]))
-                Nav_data['posture']['pitch'] = math.radians(float(fields[6]))
-                Nav_data['posture']['roll'] = math.radians(float(fields[9]))
-                if int(fields[10]) == 2 or int(fields[10]) == 3:
-                    Nav_data['location']['hACC'] = 5
-                    Nav_data['location']['vACC'] = 5
-                else:
-                    Nav_data['location']['hACC'] = 100
-                    Nav_data['location']['vACC'] = 100
-                Nav_data['velocity']['east'] = float(fields[17]) / 3.6
-                Nav_data['velocity']['north'] = float(fields[18]) / 3.6
-                Nav_data['velocity']['X'] = Nav_data['velocity']['north'] * math.cos(Nav_data['posture']['yaw']) + Nav_data['velocity']['east'] * math.sin(Nav_data['posture']['yaw'])
-                Nav_data['velocity']['Y'] = Nav_data['velocity']['north'] * math.sin(Nav_data['posture']['yaw']) + Nav_data['velocity']['east'] * math.cos(Nav_data['posture']['yaw'])
-                Nav_data['velocity']['down'] = float(fields[19]) / 3.6
-                Nav_data['velocity']['speed'] = math.hypot(Nav_data['velocity']['north'], Nav_data['velocity']['east'])
+                try:
+                    Nav_data['timestamp'] = time.time()
+                    Nav_data['location']['latitude'] = math.radians(float(fields[2]))
+                    Nav_data['location']['longitude'] = math.radians(float(fields[3]))
+                    Nav_data['location']['altitude'] = float(fields[4])
+                    Nav_data['posture']['yaw'] = math.radians(float(fields[5]))
+                    Nav_data['posture']['pitch'] = math.radians(float(fields[6]))
+                    Nav_data['posture']['roll'] = math.radians(float(fields[9]))
+                    if int(fields[10]) == 2 or int(fields[10]) == 3:
+                        Nav_data['location']['hACC'] = 5
+                        Nav_data['location']['vACC'] = 5
+                    else:
+                        Nav_data['location']['hACC'] = 100
+                        Nav_data['location']['vACC'] = 100
+                    Nav_data['velocity']['east'] = float(fields[17]) / 3.6
+                    Nav_data['velocity']['north'] = float(fields[18]) / 3.6
+                    Nav_data['velocity']['X'] = Nav_data['velocity']['north'] * math.cos(Nav_data['posture']['yaw']) + \
+                                                Nav_data['velocity']['east'] * math.sin(Nav_data['posture']['yaw'])
+                    Nav_data['velocity']['Y'] = Nav_data['velocity']['north'] * math.sin(Nav_data['posture']['yaw']) + \
+                                                Nav_data['velocity']['east'] * math.cos(Nav_data['posture']['yaw'])
+                    Nav_data['velocity']['down'] = float(fields[19]) / 3.6
+                    Nav_data['velocity']['speed'] = math.hypot(Nav_data['velocity']['north'],
+                                                               Nav_data['velocity']['east'])
+                except ValueError:
+                    pass
 
     def __airsim_decode(self):
         try:
