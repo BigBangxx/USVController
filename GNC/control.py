@@ -131,7 +131,7 @@ class Control:
     @staticmethod
     def __manual():
         Ctrl_data['rudder'] = limit_1000(int(1.4881 * (Rcu_data['channel1'] - 1024)))
-        Ctrl_data['thrust'] = limit_1000(int(-1.4881 * (Rcu_data['channel3'] - 1024)))
+        Ctrl_data['thrust'] = limit_1000(int(1.4881 * (Rcu_data['channel3'] - 1024)))
 
     @staticmethod
     def __gcs():  # 1
