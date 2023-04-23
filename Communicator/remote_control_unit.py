@@ -52,7 +52,16 @@ class RemoteControlUnit:
         """读取数据并解包数据"""
         # SBUS、WBUS 协议 0x0f开头，0x00结尾
         # SBUS2 协议 0x0f开头，0x04，0x14，0x24，0x34结尾
-        self.buffer += self.sbus.read(self.sbus.in_waiting)
+        try:
+            self.buffer += self.sbus.read(self.sbus.in_waiting)
+        except serial.SerialException:
+            print('S.Bus串口异常,尝试重置')
+            try:
+                self.sbus = serial.Serial(settings.sbus_com, 100000, serial.EIGHTBITS, serial.PARITY_EVEN,
+                                          serial.STOPBITS_TWO, 0, False, False, 0)
+                print('重置成功')
+            except serial.SerialException:
+                print('重置失败')
 
         while len(self.buffer) >= 25:
             if self.buffer[0] != 0x0f:
