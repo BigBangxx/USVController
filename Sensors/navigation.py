@@ -203,8 +203,8 @@ class Navigation:
             if "KSXT" in fields[0]:
                 try:
                     Nav_data['timestamp'] = time.time()
-                    Nav_data['location']['latitude'] = math.radians(float(fields[2]))
-                    Nav_data['location']['longitude'] = math.radians(float(fields[3]))
+                    Nav_data['location']['latitude'] = math.radians(float(fields[3]))
+                    Nav_data['location']['longitude'] = math.radians(float(fields[2]))
                     Nav_data['location']['altitude'] = float(fields[4])
                     Nav_data['posture']['yaw'] = math.radians(float(fields[5]))
                     Nav_data['posture']['pitch'] = math.radians(float(fields[6]))
