@@ -42,16 +42,16 @@ class GroundControlStation:
     def __receive_decode(self):
         if self.communication_type == 'udp':
             try:
-                data, send_address = self.gcs_socket.recvfrom(1024)
+                while True:
+                    self.buffer += self.gcs_socket.recv(1024)
             except BlockingIOError:
-                data = b""
-            self.buffer += data
+                pass
         elif self.communication_type == 'tcp':
             try:
-                data = self.gcs_socket.recv(1024)
+                while True:
+                    self.buffer += self.gcs_socket.recv(1024)
             except BlockingIOError:
-                data = b""
-            self.buffer += data
+                pass
         else:
             self.buffer += self.gcs_serial.read(self.gcs_serial.in_waiting)
 
