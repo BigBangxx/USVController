@@ -244,7 +244,7 @@ class Navigation:
 
             string = packet_data.decode()
             fields = string.split(",")
-            if len(fields) != 23:
+            if len(fields) != 22:
                 break
             if "KSXT" in fields[0]:
                 try:
