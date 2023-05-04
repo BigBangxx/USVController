@@ -1,5 +1,6 @@
 import os
 import threading
+import platform
 
 from Communicator.remote_control_unit import RemoteControlUnit
 from Communicator.ground_control_station import GroundControlStation
@@ -7,7 +8,8 @@ from Sensors.navigation import Navigation
 from GNC.control import Control
 from Utilities.log import Log
 
-from Utilities.global_data import Rcu_data, Gcs_command, Gcs_heart_beat, Nav_data, Ctrl_data, Pid, data_of_formation
+from Utilities.global_data import Rcu_data, Gcs_command, Gcs_heart_beat, Nav_data, Ctrl_data, Pid, data_of_formation, \
+    O_S
 
 
 class UsvControl:
@@ -19,6 +21,8 @@ class UsvControl:
         self.gcs = GroundControlStation()
         self.control = Control()
         self.log = Log()
+        if platform.system().lower() == 'windows':
+            O_S['platform'] = 'windows'
 
     def ms10_run(self):
         timer_10 = threading.Timer(0.01, self.ms10_run, )
@@ -36,7 +40,10 @@ class UsvControl:
     def ms1000_run(self):
         timer_1000 = threading.Timer(1, self.ms1000_run, )
         timer_1000.start()
-        os.system("clear")
+        if O_S['platform'] == 'linux':
+            os.system("clear")
+        else:
+            os.system("cls")
         print(Rcu_data)
         print(Nav_data)
         print(Ctrl_data)

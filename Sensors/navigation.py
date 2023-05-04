@@ -10,7 +10,7 @@ from Protocols.Wit import Wit
 from Protocols.Rion import Rion
 from Protocols.Anpp import Anpp
 from Protocols import Nmea0183
-from Utilities.global_data import Nav_data, Ctrl_data, settings
+from Utilities.global_data import Nav_data, Ctrl_data, settings, O_S
 
 
 class Navigation:
@@ -28,6 +28,10 @@ class Navigation:
         else:
             self.navigation = serial.Serial(settings.navigation_com, settings.navigation_baudrate, timeout=0,
                                             write_timeout=0)
+        if O_S['platform'] == 'windows':
+            self.SERIAL_ERROR = serial.SerialException
+        else:
+            self.SERIAL_ERROR = OSError
 
     def n_run(self):
         if settings.navigation_type == 'wit':
@@ -45,17 +49,7 @@ class Navigation:
             self.__nmea0183_decode()
 
     def __anpp_decode(self):
-        try:
-            self.buffer += self.navigation.read(self.navigation.in_waiting)
-        except serial.SerialException:
-            print('导航串口异常,尝试重置')
-            try:
-                self.navigation = serial.Serial(settings.navigation_com, settings.navigation_baudrate, timeout=0,
-                                                write_timeout=0)
-                print('重置成功')
-            except serial.SerialException:
-                print('重置失败')
-
+        self.__secure_read()
         while True:
             packet_id, packet_data, errors = Anpp.decode(self.buffer, Nav_data["errors"])
             if packet_id is None:
@@ -84,17 +78,7 @@ class Navigation:
             Nav_data['timestamp'] = time.time()
 
     def __fdi_device_decode(self):
-        try:
-            self.buffer += self.navigation.read(self.navigation.in_waiting)
-        except serial.SerialException:
-            print('导航串口异常,尝试重置')
-            try:
-                self.navigation = serial.Serial(settings.navigation_com, settings.navigation_baudrate, timeout=0,
-                                                write_timeout=0)
-                print('重置成功')
-            except serial.SerialException:
-                print('重置失败')
-
+        self.__secure_read()
         while True:
             packet_id, packet_data, errors = FDILink.decode(self.buffer, Nav_data["errors"])
             if packet_id is None:
@@ -136,16 +120,7 @@ class Navigation:
 
     def __wit_decode(self):
         """接受维特组合导航数据并解析"""
-        try:
-            self.buffer += self.navigation.read(self.navigation.in_waiting)
-        except serial.SerialException:
-            print('导航串口异常,尝试重置')
-            try:
-                self.navigation = serial.Serial(settings.navigation_com, settings.navigation_baudrate, timeout=0,
-                                                write_timeout=0)
-                print('重置成功')
-            except serial.SerialException:
-                print('重置失败')
+        self.__secure_read()
         while True:
             packet_id, packet_data, errors = Wit.decode(self.buffer, Nav_data["errors"])
             if packet_id is None:
@@ -188,16 +163,7 @@ class Navigation:
             Nav_data['timestamp'] = time.time()
 
     def __rion_decode(self):
-        try:
-            self.buffer += self.navigation.read(self.navigation.in_waiting)
-        except serial.SerialException:
-            print('导航串口异常,尝试重置')
-            try:
-                self.navigation = serial.Serial(settings.navigation_com, settings.navigation_baudrate, timeout=0,
-                                                write_timeout=0)
-                print('重置成功')
-            except serial.SerialException:
-                print('重置失败')
+        self.__secure_read()
         while True:
             packet_id, packet_data, errors = Rion.decode(self.buffer, Nav_data["errors"])
             if packet_id is None:
@@ -227,16 +193,7 @@ class Navigation:
             Nav_data['timestamp'] = time.time()
 
     def __nmea0183_decode(self):
-        try:
-            self.buffer += self.navigation.read(self.navigation.in_waiting)
-        except serial.SerialException:
-            print('导航串口异常,尝试重置')
-            try:
-                self.navigation = serial.Serial(settings.navigation_com, settings.navigation_baudrate, timeout=0,
-                                                write_timeout=0)
-                print('重置成功')
-            except serial.SerialException:
-                print('重置失败')
+        self.__secure_read()
         while True:
             packet_data, Nav_data["errors"] = Nmea0183.decode_buffer(self.buffer, Nav_data["errors"])
             if packet_data is None:
@@ -314,3 +271,15 @@ class Navigation:
         data_bytes = struct.pack('<Hdhh', settings.usv_id, time.time(), Ctrl_data['rudder'], Ctrl_data['thrust'])
         send_data = Anpp.encode(data_bytes, 0)  # 回应包id=0，包长14
         self.navigation_socket.sendto(send_data, (settings.airsim_ip, settings.airsim_port))
+
+    def __secure_read(self):
+        try:
+            self.buffer += self.navigation.read(self.navigation.in_waiting)
+        except self.SERIAL_ERROR:
+            print('导航串口异常,尝试重置')
+            try:
+                self.navigation = serial.Serial(settings.navigation_com, settings.navigation_baudrate, timeout=0,
+                                                write_timeout=0)
+                print('重置成功')
+            except self.SERIAL_ERROR:
+                print('重置失败')

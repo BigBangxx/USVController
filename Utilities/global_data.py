@@ -7,6 +7,9 @@ settings = Settings()
 # Mission
 mission = Mission(settings.usv_id)
 
+# Operating System
+O_S = {'platform': 'linux'}
+
 # PID parameter
 Pid = {'id': settings.usv_id, 'heading_p': settings.heading_p, 'heading_i': settings.heading_i,
        'heading_d': settings.heading_d, 'speed_p': settings.speed_p, 'speed_i': settings.speed_i,

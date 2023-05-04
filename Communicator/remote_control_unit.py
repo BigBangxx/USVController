@@ -1,7 +1,7 @@
 import serial
 
 from GNC.control import limit_1000
-from Utilities.global_data import Ctrl_data, Rcu_data, Rcu_last_data, settings
+from Utilities.global_data import Ctrl_data, Rcu_data, Rcu_last_data, settings, O_S
 
 
 class RemoteControlUnit:
@@ -13,6 +13,10 @@ class RemoteControlUnit:
         self.sbus = serial.Serial(settings.sbus_com, 100000, serial.EIGHTBITS, serial.PARITY_EVEN, serial.STOPBITS_TWO,
                                   0, False, False, 0)
         self.buffer = bytearray()
+        if O_S['platform'] == 'windows':
+            self.SERIAL_ERROR = serial.SerialException
+        else:
+            self.SERIAL_ERROR = OSError
 
     def rcu_run(self):
         self.__backup()
@@ -46,7 +50,16 @@ class RemoteControlUnit:
                 self.send_data['channel3'] = int(1024 + (Ctrl_data['thrust'] * 0.672))  # 推进器
                 self.send_data['channel1'] = int(1024 + (Ctrl_data['rudder'] * 0.672))  # 舵
             packet = self.__encode()
-            self.sbus.write(packet)
+            try:
+                self.sbus.write(packet)
+            except self.SERIAL_ERROR:
+                print('S.Bus串口发送异常,尝试重置')
+                try:
+                    self.sbus = serial.Serial(settings.sbus_com, 100000, serial.EIGHTBITS, serial.PARITY_EVEN,
+                                              serial.STOPBITS_TWO, 0, False, False, 0)
+                    print('重置成功')
+                except self.SERIAL_ERROR:
+                    print('重置失败')
 
     def __decode(self):
         """读取数据并解包数据"""
@@ -54,13 +67,13 @@ class RemoteControlUnit:
         # SBUS2 协议 0x0f开头，0x04，0x14，0x24，0x34结尾
         try:
             self.buffer += self.sbus.read(self.sbus.in_waiting)
-        except serial.SerialException:
-            print('S.Bus串口异常,尝试重置')
+        except self.SERIAL_ERROR:
+            print('S.Bus串口读取异常,尝试重置')
             try:
                 self.sbus = serial.Serial(settings.sbus_com, 100000, serial.EIGHTBITS, serial.PARITY_EVEN,
                                           serial.STOPBITS_TWO, 0, False, False, 0)
                 print('重置成功')
-            except serial.SerialException:
+            except self.SERIAL_ERROR:
                 print('重置失败')
 
         while len(self.buffer) >= 25:
@@ -152,4 +165,3 @@ class RemoteControlUnit:
         if value < 0:
             value = 0
         return value
-
