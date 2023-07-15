@@ -1,10 +1,10 @@
 # USVController
 
-2022.05.16
+
 
 #### 介绍
 
-无人艇控制程序，也可控无人小车（python语言）。
+无人艇控制程序，也可控无人小车（python语言），欢迎交流！
 
 #### 实验图片
 
@@ -30,5 +30,5 @@
 
 
 
-编队视频：https://www.bilibili.com/video/BV1xe411g788
+编队视频：https://www.bilibili.com/video/BV1dV411T7eJ；https://www.bilibili.com/video/BV1xe411g788
 
